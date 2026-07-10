@@ -8,18 +8,20 @@
     <link rel="preconnect" href="https://fonts.loli.net"/>
     <link rel="preconnect" href="https://gstatic.loli.net" crossorigin=""/>
     <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
     <script type="module" crossorigin="" src="./assets/index-4r6Lbbs8.js"></script>
     <link rel="stylesheet" crossorigin="" href="./assets/index-BYiqeDJS.css"/>
     <link rel="stylesheet" href="./assets/guestbook.css"/>
 </head>
 <body>
     <!-- 视频背景层 -->
-    <div class="video-scroll-container">
+    <div class="video-scroll-container" id="video-container">
         <video id="scroll-video" muted playsinline preload="auto" loop>
+            <source src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4" type="video/mp4">
             <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
         </video>
         <div class="video-overlay"></div>
+        <div class="video-fallback" id="video-fallback"></div>
     </div>
 
     <!-- React 应用根节点 -->
