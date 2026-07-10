@@ -3,6 +3,40 @@
     const video = document.getElementById('scroll-video');
     if (!video) return;
 
+    // 视频加载失败时的 fallback
+    const fallback = document.getElementById('video-fallback');
+    let sourceIndex = 0;
+    const sources = video.querySelectorAll('source');
+
+    function activateFallback() {
+        if (fallback) fallback.classList.add('active');
+        video.style.display = 'none';
+    }
+
+    function tryNextSource() {
+        sourceIndex++;
+        if (sourceIndex < sources.length) {
+            video.src = sources[sourceIndex].src;
+            video.load();
+            video.play().catch(() => {});
+        } else {
+            activateFallback();
+        }
+    }
+
+    video.addEventListener('error', () => {
+        tryNextSource();
+    });
+
+    // 检查所有 source 都失败的情况（某些浏览器不会在 error 时触发）
+    video.addEventListener('stalled', () => {
+        setTimeout(() => {
+            if (video.readyState < 2) {
+                tryNextSource();
+            }
+        }, 3000);
+    });
+
     // 确保视频可以播放
     video.play().catch(() => {});
     video.pause();
