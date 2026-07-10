@@ -1,0 +1,285 @@
+:root {
+    --paper: #f7f4ec;
+    --ink: #2a2a2a;
+    --ink-light: #5a5a5a;
+    --ink-faint: #9e9a94;
+    --cinnabar: #c45c48;
+    --cinnabar-soft: rgba(196, 92, 72, 0.08);
+    --stone: #5a8a7e;
+    --paper-rule: rgba(160, 140, 110, 0.12);
+}
+
+/* 视频滚动容器 */
+.video-scroll-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.video-scroll-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.15;
+    filter: grayscale(0.3) contrast(1.1);
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, 
+        rgba(247, 244, 236, 0.9) 0%, 
+        rgba(247, 244, 236, 0.6) 30%, 
+        rgba(247, 244, 236, 0.6) 70%, 
+        rgba(247, 244, 236, 0.95) 100%);
+    pointer-events: none;
+}
+
+/* 留言板区域 */
+.guestbook-section {
+    position: relative;
+    z-index: 10;
+    background: linear-gradient(180deg, 
+        transparent 0%, 
+        var(--paper) 10%, 
+        var(--paper) 100%);
+    padding: 120px 0 80px;
+}
+
+.guestbook-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.guestbook-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.guestbook-mark {
+    color: var(--cinnabar);
+    font-size: 1rem;
+    font-weight: 700;
+    border: 1.5px solid var(--cinnabar);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.guestbook-line {
+    flex: 1;
+    height: 1px;
+    background: var(--paper-rule);
+}
+
+/* 表单 */
+.guestbook-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-bottom: 56px;
+}
+
+.form-field {
+    position: relative;
+}
+
+.form-field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--stone);
+    letter-spacing: 0.15em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.form-field input,
+.form-field textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--paper-rule);
+    color: var(--ink);
+    font-family: 'Noto Serif SC', 'Noto Sans SC', serif;
+    font-size: 1rem;
+    padding: 12px 0;
+    outline: none;
+    transition: border-color 0.4s;
+    line-height: 1.8;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+    border-bottom-color: var(--cinnabar);
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+    color: var(--ink-faint);
+    opacity: 0.5;
+    font-style: italic;
+}
+
+.form-field textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 2;
+}
+
+.submit-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-light);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.9rem;
+    padding: 12px 40px;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.15em;
+    margin-top: 8px;
+}
+
+.submit-btn:hover {
+    border-color: var(--cinnabar);
+    color: var(--cinnabar);
+    background: var(--cinnabar-soft);
+}
+
+/* 留言列表 */
+.messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.message {
+    border-bottom: 1px solid var(--paper-rule);
+    padding: 28px 0;
+    position: relative;
+    transition: background 0.3s;
+}
+
+.message:hover {
+    background: rgba(160, 140, 110, 0.03);
+}
+
+.message:first-child {
+    border-top: 1px solid var(--paper-rule);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.message-author {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.message-author::before {
+    content: '「';
+    color: var(--cinnabar);
+    opacity: 0.6;
+}
+
+.message-author::after {
+    content: '」';
+    color: var(--cinnabar);
+    opacity: 0.6;
+}
+
+.message-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-faint);
+    opacity: 0.6;
+    letter-spacing: 0.05em;
+}
+
+.message-body {
+    font-size: 0.95rem;
+    color: var(--ink-light);
+    line-height: 2;
+    text-indent: 2em;
+}
+
+.empty {
+    text-align: center;
+    padding: 56px 0;
+    color: var(--ink-faint);
+    opacity: 0.5;
+    font-size: 0.9rem;
+    font-style: italic;
+    border-top: 1px solid var(--paper-rule);
+    border-bottom: 1px solid var(--paper-rule);
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    top: 32px;
+    right: 32px;
+    padding: 14px 32px;
+    font-size: 0.9rem;
+    font-family: 'Noto Serif SC', serif;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.4s ease;
+    pointer-events: none;
+    z-index: 1000;
+    background: var(--paper);
+    border-left: 2px solid var(--cinnabar);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    color: var(--ink);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.ok {
+    border-left-color: var(--stone);
+}
+
+.toast.err {
+    border-left-color: var(--cinnabar);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .guestbook-inner {
+        padding: 0 24px;
+    }
+    .guestbook-title {
+        font-size: 1.2rem;
+    }
+    .video-scroll-container video {
+        opacity: 0.1;
+    }
+}

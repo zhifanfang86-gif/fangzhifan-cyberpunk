@@ -1,16 +1,61 @@
-<!DOCTYPE html><html lang="zh-CN"><head>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>NIVON â Digital Architecture</title>
-    <meta name="description" content="NIVON â A personal portfolio of digital craftsmanship"/>
+    <title>方志凡 — 微微赛博</title>
+    <meta name="description" content="方志凡 — 微微赛博的个人数字居所"/>
     <link rel="preconnect" href="https://fonts.loli.net"/>
     <link rel="preconnect" href="https://gstatic.loli.net" crossorigin=""/>
     <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
     <script type="module" crossorigin="" src="./assets/index-4r6Lbbs8.js"></script>
     <link rel="stylesheet" crossorigin="" href="./assets/index-BYiqeDJS.css"/>
-  <script src="https://www.kimi.com/sdk-seed.js" defer=""></script></head>
-  <body>
-    <div id="root"></div>
-  
+    <link rel="stylesheet" href="./assets/guestbook.css"/>
+</head>
+<body>
+    <!-- 视频背景层 -->
+    <div class="video-scroll-container">
+        <video id="scroll-video" muted playsinline preload="auto" loop>
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
 
-</body></html>
+    <!-- React 应用根节点 -->
+    <div id="root"></div>
+
+    <!-- 尺牍（留言板）-->
+    <section class="guestbook-section" id="guestbook">
+        <div class="guestbook-inner">
+            <h2 class="guestbook-title">
+                <span class="guestbook-mark">尺</span>
+                <span>尺牍</span>
+                <span class="guestbook-line"></span>
+            </h2>
+
+            <form class="guestbook-form" id="guestbook-form">
+                <div class="form-field">
+                    <label>称呼</label>
+                    <input type="text" id="name" placeholder="阁下尊姓大名" required>
+                </div>
+                <div class="form-field">
+                    <label>留言</label>
+                    <textarea id="message" placeholder="在此落笔..." required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">投递</button>
+            </form>
+
+            <div id="messages" class="messages">
+                <div class="empty">暂无尺牍，虚位以待</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="./assets/guestbook.js"></script>
+    <script src="./assets/video-scroll.js"></script>
+</body>
+</html>
