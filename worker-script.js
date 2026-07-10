@@ -12,7 +12,7 @@ const IMAGE_MAP = {
   '/images/real/security-lock.png': 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80&auto=format&fit=crop',
   '/images/real/cyber-shield.png': 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80&auto=format&fit=crop',
   '/images/real/keyboard.png': 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80&auto=format&fit=crop',
-  '/images/real/datacenter-corridor.png': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=80&auto=format&fit=crop',
+  '/images/real/datacenter-corridor.png': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80&auto=format&fit=crop',
   '/images/real/ai-server.png': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80&auto=format&fit=crop',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
   '/images/globe-nodes.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4'
@@ -123,16 +123,27 @@ async function handleRequest(request) {
         .poem-line {
             font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
             font-size: 0.85rem;
-            color: #c4a882;
-            text-align: center;
-            margin: 20px auto 12px;
+            color: #e8b4b8 !important;
+            text-align: center !important;
+            margin: 20px auto 12px !important;
             letter-spacing: 0.15em;
             opacity: 0.85;
             font-weight: 300;
             line-height: 1.8;
-            display: table;
+            display: table !important;
         }
         .guestbook-inner .empty { display: none !important; }
+        .messages:empty::before, .messages::before { display: none !important; content: none !important; }
+        #messages:empty, .messages:empty { display: none !important; }
+        .guestbook-section {
+            padding: 60px 0 !important;
+            background: linear-gradient(180deg, rgba(10,10,20,0.95) 0%, rgba(5,5,15,1) 100%);
+        }
+        .guestbook-inner {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
         @media(max-width:768px){
             .hero-title{font-size:2rem!important}
             .hero-subtitle{font-size:1rem!important}
@@ -141,15 +152,18 @@ async function handleRequest(request) {
             .nav-links{display:none!important}
             .mobile-nav{display:flex!important}
             .container{padding:0 1rem!important}
-            .guestbook-inner{padding:0 16px!important}
+            .guestbook-inner{padding:0 16px!important;max-width:100%!important}
+            .guestbook-section{padding:40px 0!important}
             .guestbook-title{font-size:1.2rem!important}
             .submit-btn{width:100%!important;text-align:center}
             .video-scroll-container video{opacity:0.08!important}
             .poem-line{
                 font-size:0.75rem!important;
+                color:#e8b4b8!important;
                 margin:16px auto 8px!important;
                 letter-spacing:0.12em;
                 display:table!important;
+                text-align:center!important;
             }
         }
         @media(min-width:769px) and (max-width:1024px){
@@ -192,6 +206,33 @@ async function handleRequest(request) {
     </section>
     <div id="toast" class="toast"></div>
     <script src="https://cdn.jsdelivr.net/gh/zhifanfang86-gif/fangzhifan-cyberpunk@main/assets/guestbook.js"><\/script>
+    <script>
+    (function(){
+        function removeEmptyPlaceholder(){
+            var msgs = document.getElementById('messages');
+            if(msgs){
+                var children = msgs.children;
+                for(var i = children.length - 1; i >= 0; i--){
+                    if(children[i].textContent && (children[i].textContent.indexOf('暂无') >= 0 || children[i].textContent.indexOf('待位') >= 0)){
+                        children[i].style.display = 'none';
+                        children[i].parentNode.removeChild(children[i]);
+                    }
+                }
+                if(msgs.textContent && (msgs.textContent.indexOf('暂无') >= 0 || msgs.textContent.indexOf('待位') >= 0)){
+                    msgs.innerHTML = '';
+                }
+            }
+            document.querySelectorAll('.empty, .no-messages, .placeholder, [data-placeholder]').forEach(function(el){
+                el.style.display = 'none !important';
+            });
+        }
+        if(document.readyState === 'complete'){ removeEmptyPlaceholder(); }
+        else { window.addEventListener('load', removeEmptyPlaceholder); }
+        setTimeout(removeEmptyPlaceholder, 1500);
+        setTimeout(removeEmptyPlaceholder, 3000);
+        setTimeout(removeEmptyPlaceholder, 5000);
+    })();
+    <\/script>
     <script src="https://cdn.jsdelivr.net/gh/zhifanfang86-gif/fangzhifan-cyberpunk@main/assets/video-scroll.js"><\/script>
 </body>
 </html>`;
