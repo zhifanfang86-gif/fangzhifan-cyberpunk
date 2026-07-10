@@ -136,24 +136,48 @@ async function handleRequest(request) {
         .messages:empty::before, .messages::before { display: none !important; content: none !important; }
         #messages:empty, .messages:empty { display: none !important; }
         .guestbook-section {
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
             padding: 60px 0 !important;
             background: linear-gradient(180deg, #faf7f2 0%, #f3ede3 100%) !important;
             border-top: 1px solid #e8e0d4;
             border-bottom: 1px solid #e8e0d4;
+            box-sizing: border-box !important;
+        }
+        .guestbook-inner {
+            width: 100% !important;
+            max-width: 640px;
+            margin: 0 auto !important;
+            padding: 0 24px;
+            box-sizing: border-box !important;
+            overflow-x: hidden !important;
         }
         .guestbook-title, .guestbook-title span {
             color: #3a3228 !important;
+            max-width: 100% !important;
         }
         .guestbook-title .guestbook-mark {
             color: #c4a882 !important;
+        }
+        .guestbook-form {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .form-field {
+            width: 100% !important;
+            max-width: 100% !important;
         }
         .guestbook-form label {
             color: #5a4e3e !important;
         }
         .guestbook-form input, .guestbook-form textarea {
+            width: 100% !important;
+            max-width: 100% !important;
             background: #fffdfb !important;
             border: 1px solid #ddd5c8 !important;
             color: #3a3228 !important;
+            box-sizing: border-box !important;
         }
         .guestbook-form input::placeholder, .guestbook-form textarea::placeholder {
             color: #b0a898 !important;
@@ -162,11 +186,7 @@ async function handleRequest(request) {
             background: linear-gradient(135deg, #c4a882 0%, #a88b5e 100%) !important;
             color: #fff !important;
             border: none !important;
-        }
-        .guestbook-inner {
-            max-width: 640px;
-            margin: 0 auto;
-            padding: 0 24px;
+            box-sizing: border-box !important;
         }
         @media(max-width:768px){
             .hero-title{font-size:2rem!important}
@@ -176,10 +196,15 @@ async function handleRequest(request) {
             .nav-links{display:none!important}
             .mobile-nav{display:flex!important}
             .container{padding:0 1rem!important}
-            .guestbook-inner{padding:0 16px!important;max-width:100%!important}
-            .guestbook-section{padding:40px 0!important}
-            .guestbook-title{font-size:1.2rem!important}
-            .submit-btn{width:100%!important;text-align:center}
+            .guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:40px 0!important;box-sizing:border-box!important}
+            .guestbook-inner{width:100%!important;max-width:100%!important;margin:0 auto!important;padding:0 16px!important;box-sizing:border-box!important;overflow-x:hidden!important}
+            .guestbook-title{font-size:1.2rem!important;gap:8px!important;margin-bottom:24px!important;width:100%!important;max-width:100%!important}
+            .guestbook-mark{width:28px!important;height:28px!important;font-size:0.85rem!important;flex-shrink:0!important}
+            .guestbook-line{display:none!important}
+            .guestbook-form{gap:16px!important;margin-bottom:24px!important;width:100%!important}
+            .form-field{width:100%!important;max-width:100%!important}
+            .form-field input,.form-field textarea{font-size:16px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+            .submit-btn{width:100%!important;text-align:center;box-sizing:border-box!important}
             .video-scroll-container video{opacity:0.08!important}
             .poem-line{
                 font-size:0.75rem!important;
