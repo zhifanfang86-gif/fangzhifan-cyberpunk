@@ -178,6 +178,7 @@ async function handleRequest(request) {
             border: 1px solid #ddd5c8 !important;
             color: #3a3228 !important;
             box-sizing: border-box !important;
+            padding: 12px 16px !important;
         }
         .guestbook-form input::placeholder, .guestbook-form textarea::placeholder {
             color: #b0a898 !important;
@@ -203,7 +204,7 @@ async function handleRequest(request) {
             .guestbook-line{display:none!important}
             .guestbook-form{gap:16px!important;margin-bottom:24px!important;width:100%!important}
             .form-field{width:100%!important;max-width:100%!important}
-            .form-field input,.form-field textarea{font-size:16px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+            .form-field input,.form-field textarea{font-size:16px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding:12px 16px!important}
             .submit-btn{width:100%!important;text-align:center;box-sizing:border-box!important}
             .video-scroll-container video{opacity:0.08!important}
             .poem-line{
