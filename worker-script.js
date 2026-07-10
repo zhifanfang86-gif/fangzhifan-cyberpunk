@@ -197,6 +197,8 @@ async function handleRequest(request) {
             .nav-links{display:none!important}
             .mobile-nav{display:flex!important}
             .container{padding:0 1rem!important}
+            .side-nav{display:none!important}
+            body, #root{padding-left:0!important;margin-left:0!important}
             .guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:40px 0!important;box-sizing:border-box!important}
             .guestbook-inner{width:100%!important;max-width:100%!important;margin:0 auto!important;padding:0 16px!important;box-sizing:border-box!important;overflow-x:hidden!important}
             .guestbook-title{font-size:1.2rem!important;gap:8px!important;margin-bottom:24px!important;width:100%!important;max-width:100%!important}
