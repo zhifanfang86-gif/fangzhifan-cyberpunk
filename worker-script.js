@@ -123,11 +123,11 @@ async function handleRequest(request) {
         .poem-line {
             font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
             font-size: 0.85rem;
-            color: #e8b4b8 !important;
+            color: #c75b67 !important;
             text-align: center !important;
             margin: 20px auto 12px !important;
             letter-spacing: 0.15em;
-            opacity: 0.85;
+            opacity: 0.9;
             font-weight: 300;
             line-height: 1.8;
             display: table !important;
@@ -137,7 +137,31 @@ async function handleRequest(request) {
         #messages:empty, .messages:empty { display: none !important; }
         .guestbook-section {
             padding: 60px 0 !important;
-            background: linear-gradient(180deg, rgba(10,10,20,0.95) 0%, rgba(5,5,15,1) 100%);
+            background: linear-gradient(180deg, #faf7f2 0%, #f3ede3 100%) !important;
+            border-top: 1px solid #e8e0d4;
+            border-bottom: 1px solid #e8e0d4;
+        }
+        .guestbook-title, .guestbook-title span {
+            color: #3a3228 !important;
+        }
+        .guestbook-title .guestbook-mark {
+            color: #c4a882 !important;
+        }
+        .guestbook-form label {
+            color: #5a4e3e !important;
+        }
+        .guestbook-form input, .guestbook-form textarea {
+            background: #fffdfb !important;
+            border: 1px solid #ddd5c8 !important;
+            color: #3a3228 !important;
+        }
+        .guestbook-form input::placeholder, .guestbook-form textarea::placeholder {
+            color: #b0a898 !important;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #c4a882 0%, #a88b5e 100%) !important;
+            color: #fff !important;
+            border: none !important;
         }
         .guestbook-inner {
             max-width: 640px;
@@ -159,7 +183,7 @@ async function handleRequest(request) {
             .video-scroll-container video{opacity:0.08!important}
             .poem-line{
                 font-size:0.75rem!important;
-                color:#e8b4b8!important;
+                color:#c75b67!important;
                 margin:16px auto 8px!important;
                 letter-spacing:0.12em;
                 display:table!important;
