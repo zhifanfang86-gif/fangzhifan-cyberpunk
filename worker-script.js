@@ -87,8 +87,8 @@ async function handleRequest(request) {
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>方志凡 — 微微赛博</title>
-    <meta name="description" content="方志凡 — 微微赛博的个人数字居所"/>
+    <title>\u65b9\u5fd7\u51e1 \u2014 \u5fae\u5fae\u8d5b\u535a</title>
+    <meta name="description" content="\u65b9\u5fd7\u51e1 \u2014 \u5fae\u5fae\u8d5b\u535a\u7684\u4e2a\u4eba\u6570\u5b57\u5c45\u6240"/>
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
     <link rel="canonical" href="https://evafang.com/"/>
     <link rel="preconnect" href="https://fonts.loli.net"/>
@@ -171,22 +171,22 @@ async function handleRequest(request) {
     <section class="guestbook-section" id="guestbook">
         <div class="guestbook-inner">
             <h2 class="guestbook-title">
-                <span class="guestbook-mark">尺</span>
-                <span>尺牍</span>
+                <span class="guestbook-mark">\u5c3a</span>
+                <span>\u5c3a\u724d</span>
                 <span class="guestbook-line"></span>
             </h2>
             <form class="guestbook-form" id="guestbook-form">
                 <div class="form-field">
-                    <label>称呼</label>
-                    <input type="text" id="name" placeholder="阁下尊姓大名" required>
+                    <label>\u79f0\u547c</label>
+                    <input type="text" id="name" placeholder="\u9601\u4e0b\u5c0a\u59d3\u5927\u540d" required>
                 </div>
                 <div class="form-field">
-                    <label>留言</label>
-                    <textarea id="message" placeholder="在此落笔..." required></textarea>
+                    <label>\u7559\u8a00</label>
+                    <textarea id="message" placeholder="\u5728\u6b64\u843d\u7b14..." required></textarea>
                 </div>
-                <button type="submit" class="submit-btn">投递</button>
+                <button type="submit" class="submit-btn">\u6295\u9012</button>
             </form>
-            <div class="poem-line">原来路遥马急，一生只够爱一人</div>
+            <div class="poem-line">\u539f\u6765\u8def\u9065\u9a6c\u6025\uff0c\u4e00\u751f\u53ea\u591f\u7231\u4e00\u4eba</div>
             <div id="messages" class="messages"></div>
         </div>
     </section>
