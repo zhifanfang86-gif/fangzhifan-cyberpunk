@@ -13,7 +13,7 @@ const IMAGE_MAP = {
   '/images/real/cyber-shield.png': 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80',
   '/images/real/keyboard.png': 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
   '/images/real/datacenter-corridor.png': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80',
-  '/images/real/ai-server.png': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80',
+  '/images/real/ai-server.png': 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&q=80',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
   '/images/globe-nodes.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4'
 };
@@ -93,7 +93,7 @@ async function handleRequest(request) {
 .guestbook-form{width:100%!important;max-width:100%!important}
 .form-field{width:100%!important;max-width:100%!important}
 .guestbook-form label{color:#5a4e3e!important}
-.guestbook-form input,.guestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
+.guestbook-form input,.nguestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
 .guestbook-form input::placeholder,.guestbook-form textarea::placeholder{color:#b0a898!important}
 .submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
 .grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
@@ -141,7 +141,7 @@ async function handleRequest(request) {
 <p style="font-size:1rem;color:#9a9488;line-height:1.8;max-width:640px;margin:0 auto">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
 </div>
 <div style="width:100%;height:260px;border-radius:8px;overflow:hidden;margin-bottom:30px;position:relative;border:1px solid rgba(196,168,130,0.15)">
-<img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80" style="width:100%;height:100%;object-fit:cover;opacity:0.7" alt="本地AI基础设施">
+<img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80" style="width:100%;height:100%;object-fit:cover;opacity:0.7" alt="本地AI基础设施">
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.3) 0%,rgba(10,10,15,0.8) 100%)"></div>
 </div>
 <div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">核心能力</div>
