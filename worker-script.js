@@ -23,7 +23,7 @@ async function handleRequest(request) {
   const path = url.pathname;
   const hostname = url.hostname;
   if (hostname === 'www.evafang.com') {
-    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age=86400' }});
+    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age:86400' }});
   }
   if (url.protocol === 'http:') {
     return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload' }});
@@ -80,7 +80,7 @@ async function handleRequest(request) {
 <script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
 <link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
 <link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认证体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
+<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
 <script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
 <style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
 .poem-line{font-family:'Noto Serif SC','Songti SC',serif;font-size:0.85rem;color:#c75b67!important;text-align:center!important;margin:20px auto 12px!important;letter-spacing:0.15em;opacity:0.9;font-weight:300;line-height:1.8;display:table!important}
@@ -130,6 +130,8 @@ async function handleRequest(request) {
 <div class="video-overlay"></div>
 <div class="video-fallback" id="video-fallback"></div>
 </div>
+
+<div id="root"></div>
 
 <section class="ai-server-section" style="width:100%;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);padding:30px 16px 40px;position:relative">
 <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1">
@@ -193,8 +195,6 @@ async function handleRequest(request) {
 </div>
 </div>
 </section>
-
-<div id="root"></div>
 
 <section class="guestbook-section" id="guestbook">
 <div class="guestbook-inner">
