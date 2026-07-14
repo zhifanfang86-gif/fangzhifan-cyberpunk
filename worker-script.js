@@ -1,6 +1,126 @@
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
+  event.respondWith(handleRequest(event.request, event.env));
 });
+
+/* ============================================================
+ *  evafang.com Worker — v2.0
+ *  功能: 尺牍云端(KV) + 联系表单邮件(Resend) + 图片代理 + 静态资源
+ *  长期维护: 配置集中、路由模块化、错误统一
+ * ============================================================ */
+
+const CONFIG = {
+  FROM_EMAIL:    'onboarding@resend.dev',
+  TO_EMAIL:      'EVAFang@proton.me',
+  KV_KEY:        'messages',
+  MAX_MESSAGES:  100,
+  ASSETS_ORIGIN: 'https://raw.githubusercontent.com/zhifanfang86-gif/fangzhifan-cyberpunk/main/assets/',
+};
+
+function jsonResponse(data, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      ...extraHeaders
+    }
+  });
+}
+
+function htmlResponse(html, extraHeaders = {}) {
+  return new Response(html, {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=60',
+      'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload',
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      ...extraHeaders
+    }
+  });
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function sanitizeInput(text, maxLen) {
+  if (!text || typeof text !== 'string') return '';
+  return text.trim().substring(0, maxLen);
+}
+
+async function sendContactEmail(env, { name, email, message, source = 'evafang.com' }) {
+  const apiKey = env.RESEND_API_KEY;
+  if (!apiKey) {
+    return { success: false, error: 'RESEND_API_KEY not configured' };
+  }
+
+  const subject = `[${source}] 新留言来自 ${name || '匿名'}`;
+  const bodyHtml = `
+    <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+      <h2 style="color:#c4a882;border-bottom:2px solid #e8e0d4;padding-bottom:12px;">📬 新联系请求</h2>
+      <table style="width:100%;border-collapse:collapse;margin-top:16px;">
+        <tr><td style="padding:8px 0;color:#666;width:80px;">称呼</td><td style="padding:8px 0;font-weight:600;">${escapeHtml(name || '未填写')}</td></tr>
+        <tr><td style="padding:8px 0;color:#666;">邮箱</td><td style="padding:8px 0;">${escapeHtml(email || '未填写')}</td></tr>
+        <tr><td style="padding:8px 0;color:#666;vertical-align:top;">留言</td><td style="padding:8px 0;white-space:pre-wrap;">${escapeHtml(message || '空')}</td></tr>
+        <tr><td style="padding:8px 0;color:#666;">时间</td><td style="padding:8px 0;color:#999;">${new Date().toLocaleString('zh-CN')}</td></tr>
+        <tr><td style="padding:8px 0;color:#666;">来源</td><td style="padding:8px 0;color:#999;">${source}</td></tr>
+      </table>
+      <p style="margin-top:24px;color:#999;font-size:0.85rem;">此邮件由 evafang.com 自动发送</p>
+    </div>
+  `;
+
+  try {
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: CONFIG.FROM_EMAIL,
+        to: CONFIG.TO_EMAIL,
+        subject: subject,
+        html: bodyHtml
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      return { success: false, error: `Resend HTTP ${resp.status}: ${err}` };
+    }
+
+    const result = await resp.json();
+    return { success: true, id: result.id };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+async function getMessages(kv) {
+  try {
+    const raw = await kv.get(CONFIG.KV_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function addMessage(kv, entry) {
+  const list = await getMessages(kv);
+  list.unshift(entry);
+  if (list.length > CONFIG.MAX_MESSAGES) list.length = CONFIG.MAX_MESSAGES;
+  await kv.put(CONFIG.KV_KEY, JSON.stringify(list));
+  return list;
+}
 
 const SVG_IMAGES = {
   'ai-robot': `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#1a1a2e"/><circle cx="200" cy="120" r="50" fill="none" stroke="#c4a882" stroke-width="2"/><circle cx="185" cy="110" r="5" fill="#c4a882"/><circle cx="215" cy="110" r="5" fill="#c4a882"/><path d="M170 150 Q200 170 230 150" stroke="#c4a882" stroke-width="2" fill="none"/><text x="200" y="220" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="14">AI 智能机器人</text></svg>`,
@@ -25,60 +145,67 @@ const IMAGE_MAP = {
   '/images/real/local-ai-hero': '__embedded:svg:local-ai-hero'
 };
 
-async function handleRequest(request) {
-  const url = new URL(request.url);
-  const path = url.pathname;
-  const hostname = url.hostname;
-  if (hostname === 'www.evafang.com') {
-    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age:86400' }});
-  }
-  if (url.protocol === 'http:') {
-    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload' }});
-  }
+async function proxyImage(path) {
   const redirectUrl = IMAGE_MAP[path];
-  if (redirectUrl) {
-    if (redirectUrl.startsWith('__embedded:svg:')) {
-      const svgKey = redirectUrl.replace('__embedded:svg:', '');
-      const svgData = SVG_IMAGES[svgKey];
-      if (svgData) {
-        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age:86400' }});
-      }
+  if (!redirectUrl) return null;
+
+  if (redirectUrl.startsWith('__embedded:svg:')) {
+    const svgKey = redirectUrl.replace('__embedded:svg:', '');
+    const svgData = SVG_IMAGES[svgKey];
+    if (svgData) {
+      return new Response(svgData, {
+        status: 200,
+        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age:86400' }
+      });
     }
-    try {
-      const imgResp = await fetch(redirectUrl, { headers: { 'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' }});
-      if (!imgResp.ok) return new Response('Upstream error: ' + imgResp.status, { status: 502 });
-      const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/png');
-      return new Response(imgResp.body, { status: 200, headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=300', 'Access-Control-Allow-Origin': '*' }});
-    } catch (e) { return new Response('Image fetch failed: ' + e.message, { status: 502 }); }
   }
-  const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
-  if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+
   try {
-
-    if (path.startsWith('/assets/')) {
-      const assetPath = path.replace('/assets/', '');
-      const assetUrl = 'https://raw.githubusercontent.com/zhifanfang86-gif/fangzhifan-cyberpunk/main/assets/' + assetPath;
-      try {
-        const raw = await fetch(assetUrl);
-        if (!raw.ok) return new Response('Asset not found: ' + assetPath, { status: 404 });
-        const body = await raw.text();
-        const contentType = assetPath.endsWith('.css') ? 'text/css' : 
-                          assetPath.endsWith('.js') ? 'application/javascript' : 
-                          raw.headers.get('Content-Type') || 'text/plain';
-        return new Response(body, {
-          headers: {
-            'Content-Type': contentType + '; charset=utf-8',
-            'Cache-Control': 'public, max-age:300',
-            'Access-Control-Allow-Origin': '*'
-          }
-        });
-      } catch (e) {
-        return new Response('Asset fetch failed: ' + e.message, { status: 502 });
+    const imgResp = await fetch(redirectUrl, {
+      headers: {
+        'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
       }
+    });
+    if (!imgResp.ok) {
+      return new Response('Upstream error: ' + imgResp.status, { status: 502 });
     }
+    const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/png');
+    return new Response(imgResp.body, {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=300',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (e) {
+    return new Response('Image fetch failed: ' + e.message, { status: 502 });
+  }
+}
 
-    if (path === '/' || path === '/index.html') {
-      const html = `<!DOCTYPE html>
+async function proxyAsset(assetPath) {
+  const assetUrl = CONFIG.ASSETS_ORIGIN + assetPath;
+  try {
+    const raw = await fetch(assetUrl);
+    if (!raw.ok) return new Response('Asset not found: ' + assetPath, { status: 404 });
+    const body = await raw.text();
+    const contentType = assetPath.endsWith('.css') ? 'text/css' :
+                        assetPath.endsWith('.js')  ? 'application/javascript' :
+                        raw.headers.get('Content-Type') || 'text/plain';
+    return new Response(body, {
+      headers: {
+        'Content-Type': contentType + '; charset=utf-8',
+        'Cache-Control': 'public, max-age:300',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  } catch (e) {
+    return new Response('Asset fetch failed: ' + e.message, { status: 502 });
+  }
+}
+
+function renderIndexHtml() {
+  return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8"/>
@@ -137,7 +264,7 @@ async function handleRequest(request) {
 </head>
 <body>
 <div class="video-scroll-container" id="video-container">
-<video id="scroll-video" muted playsinline preload="auto">
+<video id="scroll-video" muted playsinline preload="auto" loop autoplay>
 <source src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4" type="video/mp4">
 <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
 </video>
@@ -246,30 +373,106 @@ setTimeout(r,1500);setTimeout(r,3000);setTimeout(r,5000);
 <script src="/assets/video-scroll.js"></script>
 </body>
 </html>`;
-      const securityHeaders = {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=60',
-        'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload',
-        'X-Content-Type-Options': 'nosniff',
-        'Referrer-Policy': 'strict-origin-when-cross-origin'
-      };
-      return new Response(html, { headers: securityHeaders });
-    }
-    // 尺牍留言：纯本地模式，不读写 KV
-    if (path === '/messages' && request.method === 'GET') {
-      return new Response('[]', { headers: corsHeaders });
-    }
-    if (path === '/messages' && request.method === 'POST') {
-      return new Response(JSON.stringify({ success: true, local: true }), { headers: corsHeaders });
-    }
-    if (path === '/debug-kv') {
-      return new Response(JSON.stringify({ status: 'kv-bound-but-not-used' }), { headers: corsHeaders });
-    }
-    if (path === '/health') {
-      return new Response(JSON.stringify({ status: 'online', node: 'FZ-001' }), { headers: corsHeaders });
-    }
-    return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: corsHeaders });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+}
+
+async function handleRequest(request, env) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  const hostname = url.hostname;
+
+  if (hostname === 'www.evafang.com') {
+    return new Response(null, {
+      status: 301,
+      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age:86400' }
+    });
   }
+
+  if (url.protocol === 'http:') {
+    return new Response(null, {
+      status: 301,
+      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload' }
+    });
+  }
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    });
+  }
+
+  if (IMAGE_MAP[path]) {
+    const imgResp = await proxyImage(path);
+    if (imgResp) return imgResp;
+  }
+
+  if (path.startsWith('/assets/')) {
+    const assetPath = path.replace('/assets/', '');
+    return await proxyAsset(assetPath);
+  }
+
+  if (path === '/messages') {
+    if (request.method === 'GET') {
+      const list = await getMessages(env.GUESTBOOK_KV);
+      return jsonResponse({ success: true, data: list });
+    }
+    if (request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const name = sanitizeInput(body.name, 50) || '匿名';
+        const message = sanitizeInput(body.message, 500);
+        if (!message) {
+          return jsonResponse({ success: false, error: '留言内容不能为空' }, 400);
+        }
+        const entry = {
+          name,
+          message,
+          time: new Date().toLocaleString('zh-CN'),
+          timestamp: Date.now()
+        };
+        const list = await addMessage(env.GUESTBOOK_KV, entry);
+        return jsonResponse({ success: true, data: list });
+      } catch (e) {
+        return jsonResponse({ success: false, error: e.message }, 500);
+      }
+    }
+  }
+
+  if (path === '/api/contact') {
+    if (request.method !== 'POST') {
+      return jsonResponse({ success: false, error: 'Method not allowed' }, 405);
+    }
+    try {
+      const body = await request.json();
+      const name = sanitizeInput(body.name, 50);
+      const email = sanitizeInput(body.email, 100);
+      const message = sanitizeInput(body.message, 2000);
+
+      if (!name || !message) {
+        return jsonResponse({ success: false, error: '称呼和留言为必填项' }, 400);
+      }
+
+      const result = await sendContactEmail(env, { name, email, message });
+      if (result.success) {
+        return jsonResponse({ success: true, message: '邮件已发送', emailId: result.id });
+      } else {
+        return jsonResponse({ success: false, error: result.error }, 502);
+      }
+    } catch (e) {
+      return jsonResponse({ success: false, error: e.message }, 500);
+    }
+  }
+
+  if (path === '/health') {
+    return jsonResponse({ success: true, status: 'online', node: 'FZ-001', version: '2.0' });
+  }
+
+  if (path === '/' || path === '/index.html') {
+    return htmlResponse(renderIndexHtml());
+  }
+
+  return jsonResponse({ success: false, error: 'Not found' }, 404);
 }
