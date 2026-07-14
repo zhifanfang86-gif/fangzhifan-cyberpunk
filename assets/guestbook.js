@@ -43,8 +43,8 @@
                 list = [{
                     name: '小山',
                     message: '13057357652',
-                    time: new Date().toLocaleString('zh-CN'),
-                    timestamp: Date.now()
+                    time: '2026-07-14 10:07:56',
+                    timestamp: 1783994875884
                 }];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
             }
