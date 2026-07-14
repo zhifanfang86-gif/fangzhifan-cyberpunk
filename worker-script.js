@@ -2,8 +2,14 @@ addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
 
+const SVG_IMAGES = {
+  'ai-robot': 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ccircle cx=%22200%22 cy=%22120%22 r=%2250%22 fill=%22none%22 stroke=%22%23c4a882%22 stroke-width=%222%22/%3E%3Ccircle cx=%22185%22 cy=%22110%22 r=%225%22 fill=%22%23c4a882%22/%3E%3Ccircle cx=%22215%22 cy=%22110%22 r=%225%22 fill=%22%23c4a882%22/%3E%3Cpath d=%22M170 150 Q200 170 230 150%22 stroke=%22%23c4a882%22 stroke-width=%222%22 fill=%22none%22/%3E%3Ctext x=%22200%22 y=%22220%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-family=%22serif%22 font-size=%2214%22%3EAI 智能机器人%3C/text%3E%3C/svg%3E',
+  'ai-server': 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Crect x=%22120%22 y=%2280%22 width=%22160%22 height=%22140%22 rx=%225%22 fill=%22none%22 stroke=%22%23c4a882%22 stroke-width=%222%22/%3E%3Cline x1=%22120%22 y1=%22110%22 x2=%22280%22 y2=%22110%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22120%22 y1=%22140%22 x2=%22280%22 y2=%22140%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22120%22 y1=%22170%22 x2=%22280%22 y2=%22170%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Ccircle cx=%22140%22 cy=%22125%22 r=%223%22 fill=%22%23c4a882%22/%3E%3Ccircle cx=%22140%22 cy=%22155%22 r=%223%22 fill=%22%23c4a882%22/%3E%3Ccircle cx=%22140%22 cy=%22185%22 r=%223%22 fill=%22%23c4a882%22/%3E%3Ctext x=%22200%22 y=%22250%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-family=%22serif%22 font-size=%2214%22%3EAI 服务器集群%3C/text%3E%3C/svg%3E',
+  'local-ai-hero': 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22260%22 viewBox=%220 0 800 260%22%3E%3Crect width=%22800%22 height=%22260%22 fill=%22%231a1a2e%22/%3E%3Crect x=%22250%22 y=%2260%22 width=%22300%22 height=%22140%22 rx=%228%22 fill=%22none%22 stroke=%22%23c4a882%22 stroke-width=%222%22/%3E%3Cline x1=%22250%22 y1=%22100%22 x2=%22550%22 y2=%22100%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22250%22 y1=%22130%22 x2=%22550%22 y2=%22130%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22250%22 y1=%22160%22 x2=%22550%22 y2=%22160%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Ccircle cx=%22280%22 cy=%2280%22 r=%224%22 fill=%22%23c4a882%22/%3E%3Ctext x=%22400%22 y=%22220%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-family=%22serif%22 font-size=%2216%22%3E本地 AI 全栈基础设施%3C/text%3E%3C/svg%3E'
+};
+
 const IMAGE_MAP = {
-  '/images/real/ai-robot.png': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80',
+  '/images/real/ai-robot.png': '__embedded:svg:ai-robot',
   '/images/real/server-room.png': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=80',
   '/images/real/datacenter-lights.png': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80',
   '/images/real/coding.png': 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80',
@@ -13,9 +19,10 @@ const IMAGE_MAP = {
   '/images/real/cyber-shield.png': 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80',
   '/images/real/keyboard.png': 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
   '/images/real/datacenter-corridor.png': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80',
-  '/images/real/ai-server.png': 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&q=80',
+  '/images/real/ai-server.png': '__embedded:svg:ai-server',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
-  '/images/globe-nodes.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4'
+  '/images/globe-nodes.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
+  '/images/real/local-ai-hero': '__embedded:svg:local-ai-hero'
 };
 
 async function handleRequest(request) {
@@ -30,11 +37,18 @@ async function handleRequest(request) {
   }
   const redirectUrl = IMAGE_MAP[path];
   if (redirectUrl) {
+    if (redirectUrl.startsWith('__embedded:svg:')) {
+      const svgKey = redirectUrl.replace('__embedded:svg:', '');
+      const svgData = SVG_IMAGES[svgKey];
+      if (svgData) {
+        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' }});
+      }
+    }
     try {
       const imgResp = await fetch(redirectUrl, { headers: { 'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' }});
       if (!imgResp.ok) return new Response('Upstream error: ' + imgResp.status, { status: 502 });
       const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/png');
-      return new Response(imgResp.body, { status: 200, headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=300', 'Access-Control-Allow-Origin': '*' }});
+      return new Response(imgResp.body, { status: 200, headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age:300', 'Access-Control-Allow-Origin': '*' }});
     } catch (e) { return new Response('Image fetch failed: ' + e.message, { status: 502 }); }
   }
   const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
@@ -80,7 +94,7 @@ async function handleRequest(request) {
 <script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
 <link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
 <link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
+<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});(function(){function m(){var ai=document.querySelector('.ai-server-section');var hero=document.getElementById('hero');if(ai&&hero){hero.parentNode.insertBefore(ai,hero.nextSibling)}}function w(){var sections=document.querySelectorAll('section[id],section.ai-server-section');for(var i=0;i<sections.length;i++){var s=sections[i];s.style.width='100%';s.style.maxWidth='100vw';s.style.overflowX='hidden';s.style.boxSizing='border-box';s.style.paddingLeft='0';s.style.paddingRight='0';s.style.marginLeft='0';s.style.marginRight='0'}}setTimeout(function(){m();w()},1500);setTimeout(function(){m();w()},3000)})();</script>
 <script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
 <style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
 .poem-line{font-family:'Noto Serif SC','Songti SC',serif;font-size:0.85rem;color:#c75b67!important;text-align:center!important;margin:20px auto 12px!important;letter-spacing:0.15em;opacity:0.9;font-weight:300;line-height:1.8;display:table!important}
@@ -93,7 +107,7 @@ async function handleRequest(request) {
 .guestbook-form{width:100%!important;max-width:100%!important}
 .form-field{width:100%!important;max-width:100%!important}
 .guestbook-form label{color:#5a4e3e!important}
-.guestbook-form input,.nguestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
+.guestbook-form input,.guestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
 .guestbook-form input::placeholder,.guestbook-form textarea::placeholder{color:#b0a898!important}
 .submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
 .grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
@@ -141,7 +155,7 @@ async function handleRequest(request) {
 <p style="font-size:1rem;color:#9a9488;line-height:1.8;max-width:640px;margin:0 auto">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
 </div>
 <div style="width:100%;height:260px;border-radius:8px;overflow:hidden;margin-bottom:30px;position:relative;border:1px solid rgba(196,168,130,0.15)">
-<img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80" style="width:100%;height:100%;object-fit:cover;opacity:0.7" alt="本地AI基础设施">
+<img src="/images/real/local-ai-hero" style="width:100%;height:100%;object-fit:cover;opacity:0.7" alt="本地AI基础设施">
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.3) 0%,rgba(10,10,15,0.8) 100%)"></div>
 </div>
 <div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">核心能力</div>
