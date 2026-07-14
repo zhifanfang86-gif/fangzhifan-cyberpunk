@@ -1,89 +1,131 @@
-// 视频滚动播放控制
+// 视频滚动播放控制 - 修复版
 (function() {
+    'use strict';
+    
     const video = document.getElementById('scroll-video');
-    if (!video) return;
-
-    // 视频加载失败时的 fallback
+    const container = document.getElementById('video-container');
     const fallback = document.getElementById('video-fallback');
-    let sourceIndex = 0;
-    const sources = video.querySelectorAll('source');
+    
+    if (!video || !container) {
+        console.warn('[VideoScroll] Video element or container not found');
+        if (fallback) fallback.classList.add('active');
+        return;
+    }
 
-    function activateFallback() {
+    // 禁用 loop，由滚动完全控制播放进度（loop 会与 currentTime 控制冲突）
+    video.removeAttribute('loop');
+    
+    // 状态跟踪
+    let isVideoLoaded = false;
+    let hasError = false;
+    let sourceIndex = 0;
+    const sources = Array.from(video.querySelectorAll('source'));
+
+    function activateFallback(reason) {
+        if (hasError) return;
+        hasError = true;
+        console.warn('[VideoScroll] Activating fallback, reason:', reason);
         if (fallback) fallback.classList.add('active');
         video.style.display = 'none';
+        container.style.background = 'linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #0d0d14 100%)';
     }
 
     function tryNextSource() {
+        if (hasError) return;
         sourceIndex++;
+        console.log('[VideoScroll] Trying source index:', sourceIndex);
         if (sourceIndex < sources.length) {
             video.src = sources[sourceIndex].src;
             video.load();
-            video.play().catch(() => {});
+            var pp = video.play();
+            if (pp !== undefined) {
+                pp.then(function() { video.pause(); }).catch(function() {});
+            }
         } else {
-            activateFallback();
+            activateFallback('all sources failed');
         }
     }
 
-    video.addEventListener('error', () => {
+    video.addEventListener('error', function(e) {
+        console.warn('[VideoScroll] Video error:', e);
         tryNextSource();
     });
 
-    // 检查所有 source 都失败的情况（某些浏览器不会在 error 时触发）
-    video.addEventListener('stalled', () => {
-        setTimeout(() => {
-            if (video.readyState < 2) {
+    video.addEventListener('stalled', function() {
+        if (hasError || isVideoLoaded) return;
+        setTimeout(function() {
+            if (!isVideoLoaded && !hasError && video.readyState < 2) {
+                console.warn('[VideoScroll] Video stalled');
                 tryNextSource();
             }
-        }, 3000);
+        }, 5000);
     });
 
-    // 确保视频可以播放
-    video.play().catch(() => {});
-    video.pause();
+    video.addEventListener('loadedmetadata', function() {
+        console.log('[VideoScroll] Metadata loaded, duration:', video.duration);
+        isVideoLoaded = true;
+        updateVideoProgress();
+    });
 
-    let isScrollLocked = false;
+    video.addEventListener('canplay', function() {
+        isVideoLoaded = true;
+    });
+
+    function initVideo() {
+        if (!video.src && sources.length > 0) {
+            video.src = sources[0].src;
+        }
+        video.load();
+        var pp = video.play();
+        if (pp !== undefined) {
+            pp.then(function() {
+                video.pause();
+                updateVideoProgress();
+            }).catch(function(err) {
+                console.log('[VideoScroll] Initial play prevented:', err.message);
+            });
+        }
+    }
+
+    let ticking = false;
     let lastScrollTime = 0;
-    const scrollThrottle = 50; // ms
+    const scrollThrottle = 16;
 
     function updateVideoProgress() {
-        const now = Date.now();
-        if (now - lastScrollTime < scrollThrottle) return;
-        lastScrollTime = now;
+        if (!isVideoLoaded || !video.duration || isNaN(video.duration)) return;
 
         const scrollTop = window.scrollY || document.documentElement.scrollTop;
         const docHeight = document.documentElement.scrollHeight - window.innerHeight;
         
-        if (docHeight <= 0) return;
-
-        // 计算滚动进度 (0 ~ 1)
-        const progress = Math.min(Math.max(scrollTop / docHeight, 0), 1);
-
-        // 根据滚动进度设置视频播放时间
-        if (video.duration && !isNaN(video.duration)) {
-            const targetTime = progress * video.duration;
-            
-            // 如果差异较大，直接设置；否则平滑过渡
-            const diff = Math.abs(video.currentTime - targetTime);
-            if (diff > 0.5) {
-                video.currentTime = targetTime;
-            } else {
-                video.currentTime += (targetTime - video.currentTime) * 0.3;
-            }
+        let progress = 0;
+        if (docHeight > 0) {
+            progress = Math.min(Math.max(scrollTop / docHeight, 0), 1);
         }
 
-        // 根据滚动速度控制播放/暂停
-        if (!video.paused && progress >= 0.99) {
-            video.pause();
-        } else if (video.paused && progress < 0.99) {
-            video.play().catch(() => {});
+        const targetTime = progress * video.duration;
+        const diff = Math.abs(video.currentTime - targetTime);
+        
+        if (diff > 0.5) {
+            video.currentTime = targetTime;
+        } else {
+            video.currentTime += (targetTime - video.currentTime) * 0.3;
+        }
+
+        if (progress >= 0.998) {
+            if (!video.paused) video.pause();
+        } else {
+            if (video.paused && !document.hidden) {
+                video.play().catch(function() {});
+            }
         }
     }
 
-    // 使用 requestAnimationFrame 优化滚动性能
-    let ticking = false;
     function onScroll() {
+        const now = Date.now();
+        if (now - lastScrollTime < scrollThrottle) return;
+        lastScrollTime = now;
         if (!ticking) {
-            requestAnimationFrame(() => {
+            requestAnimationFrame(function() {
                 updateVideoProgress();
                 ticking = false;
             });
@@ -91,31 +133,33 @@
         }
     }
 
-    // 监听滚动
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // 视频加载完成后初始化
-    video.addEventListener('loadedmetadata', () => {
-        updateVideoProgress();
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            video.pause();
+        } else if (isVideoLoaded) {
+            onScroll();
+        }
     });
 
-    // 如果视频已经加载完成
-    if (video.readyState >= 1) {
-        updateVideoProgress();
-    }
-
-    // 触摸设备优化：降低视频帧率
-    const isTouchDevice = 'ontouchstart' in window;
+    var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouchDevice) {
         video.playbackRate = 0.5;
     }
 
-    // 页面可见性控制
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            video.pause();
-        } else {
-            onScroll();
+    if (video.readyState >= 1 && video.duration) {
+        isVideoLoaded = true;
+        updateVideoProgress();
+    } else {
+        initVideo();
+    }
+
+    setTimeout(function() {
+        if (!isVideoLoaded && !hasError) {
+            activateFallback('timeout');
         }
-    });
+    }, 8000);
+
+    console.log('[VideoScroll] Initialized');
 })();
