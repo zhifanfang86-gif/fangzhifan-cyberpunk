@@ -10,18 +10,18 @@ const SVG_IMAGES = {
 
 const IMAGE_MAP = {
   '/images/real/ai-robot.png': '__embedded:svg:ai-robot',
-  '/images/real/server-room.png': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=80',
-  '/images/real/datacenter-lights.png': 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80',
-  '/images/real/coding.png': 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80',
-  '/images/real/hero-chip.png': 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
-  '/images/real/fiber.png': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400&q=80',
-  '/images/real/security-lock.png': 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
-  '/images/real/cyber-shield.png': 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80',
-  '/images/real/keyboard.png': 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
-  '/images/real/datacenter-corridor.png': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80',
+  '/images/real/server-room.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=80',
+  '/images/real/datacenter-lights.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80',
+  '/images/real/coding.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80',
+  '/images/real/hero-chip.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
+  '/images/real/fiber.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400&q=80',
+  '/images/real/security-lock.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
+  '/images/real/cyber-shield.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80',
+  '/images/real/keyboard.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
+  '/images/real/datacenter-corridor.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80',
   '/images/real/ai-server.png': '__embedded:svg:ai-server',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
-  '/images/globe-nodes.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
+  '/images/globe-nodes.mp4': 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4',
   '/images/real/local-ai-hero': '__embedded:svg:local-ai-hero'
 };
 
@@ -30,7 +30,7 @@ async function handleRequest(request) {
   const path = url.pathname;
   const hostname = url.hostname;
   if (hostname === 'www.evafang.com') {
-    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age:86400' }});
+    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age=86400' }});
   }
   if (url.protocol === 'http:') {
     return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload' }});
@@ -41,14 +41,14 @@ async function handleRequest(request) {
       const svgKey = redirectUrl.replace('__embedded:svg:', '');
       const svgData = SVG_IMAGES[svgKey];
       if (svgData) {
-        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age:86400' }});
+        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' }});
       }
     }
     try {
       const imgResp = await fetch(redirectUrl, { headers: { 'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8' }});
       if (!imgResp.ok) return new Response('Upstream error: ' + imgResp.status, { status: 502 });
       const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/png');
-      return new Response(imgResp.body, { status: 200, headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age:300', 'Access-Control-Allow-Origin': '*' }});
+      return new Response(imgResp.body, { status: 200, headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=300', 'Access-Control-Allow-Origin': '*' }});
     } catch (e) { return new Response('Image fetch failed: ' + e.message, { status: 502 }); }
   }
   const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Content-Type': 'application/json' };
@@ -68,7 +68,7 @@ async function handleRequest(request) {
         return new Response(body, {
           headers: {
             'Content-Type': contentType + '; charset=utf-8',
-            'Cache-Control': 'public, max-age:300',
+            'Cache-Control': 'public, max-age=300',
             'Access-Control-Allow-Origin': '*'
           }
         });
@@ -94,9 +94,14 @@ async function handleRequest(request) {
 <script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
 <link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
 <link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});(function(){function m(){var ai=document.querySelector('.ai-server-section');var hero=document.getElementById('hero');if(ai&&hero){hero.parentNode.insertBefore(ai,hero.nextSibling)}}function w(){var sections=document.querySelectorAll('section[id],section.ai-server-section');for(var i=0;i<sections.length;i++){var s=sections[i];s.style.width='100%';s.style.maxWidth='100vw';s.style.overflowX='hidden';s.style.boxSizing='border-box';s.style.paddingLeft='0';s.style.paddingRight='0';s.style.marginLeft='0';s.style.marginRight='0'}}setTimeout(function(){m();w()},1500);setTimeout(function(){m();w()},3000)})();</script>
+<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});(function(){function m(){var ai=document.querySelector('.ai-server-section');var hero=document.getElementById('hero');if(ai&&hero){hero.parentNode.insertBefore(ai,hero.nextSibling)}}function w(){var sections=document.querySelectorAll('section[id],section.ai-server-section');for(var i=0;i<sections.length;i++){var s=sections[i];s.style.width='100%';s.style.maxWidth='100vw';s.style.overflowX='hidden';s.style.boxSizing='border-box';s.style.paddingLeft='0';s.style.paddingRight='0';s.style.marginLeft='0';s.style.marginRight='0'}}setTimeout(function(){m();w()},1500);setTimeout(function(){m();w()},3000)})();}</script>
 <script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
 <style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
+.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;background:#0a0a0f;overflow:hidden}
+.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:0.6}
+.video-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.6) 0%,rgba(10,10,15,0.3) 50%,rgba(10,10,15,0.8) 100%);pointer-events:none}
+.video-fallback{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0a0a0f 100%);opacity:0;transition:opacity 0.5s}
+.video-fallback.active{opacity:1}
 .poem-line{font-family:'Noto Serif SC','Songti SC',serif;font-size:0.85rem;color:#c75b67!important;text-align:center!important;margin:20px auto 12px!important;letter-spacing:0.15em;opacity:0.9;font-weight:300;line-height:1.8;display:table!important}
 .guestbook-inner .empty{display:none!important}
 #messages:empty,.messages:empty{display:none!important}
@@ -248,41 +253,22 @@ setTimeout(r,1500);setTimeout(r,3000);setTimeout(r,5000);
 </html>`;
       const securityHeaders = {
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age:60',
+        'Cache-Control': 'public, max-age=60',
         'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload',
         'X-Content-Type-Options': 'nosniff',
         'Referrer-Policy': 'strict-origin-when-cross-origin'
       };
       return new Response(html, { headers: securityHeaders });
     }
+    // 尺牍留言：纯本地模式，不读写 KV
     if (path === '/messages' && request.method === 'GET') {
-      const messages = await GUESTBOOK_KV.get('messages');
-      const data = messages ? JSON.parse(messages) : [];
-      return new Response(JSON.stringify(data), { headers: corsHeaders });
+      return new Response('[]', { headers: corsHeaders });
     }
     if (path === '/messages' && request.method === 'POST') {
-      const body = await request.json();
-      if (!body.name || !body.message) {
-        return new Response(JSON.stringify({ error: 'Name and message are required' }), { status: 400, headers: corsHeaders });
-      }
-      const newMessage = {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-        name: body.name.substring(0, 50),
-        message: body.message.substring(0, 500),
-        time: body.time || new Date().toLocaleString('zh-CN'),
-        timestamp: Date.now()
-      };
-      const existing = await GUESTBOOK_KV.get('messages');
-      const messages = existing ? JSON.parse(existing) : [];
-      messages.unshift(newMessage);
-      const trimmed = messages.slice(0, 100);
-      await GUESTBOOK_KV.put('messages', JSON.stringify(trimmed));
-      return new Response(JSON.stringify({ success: true, message: newMessage }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ success: true, local: true }), { headers: corsHeaders });
     }
     if (path === '/debug-kv') {
-      const kvValue = await GUESTBOOK_KV.get('test-key-2');
-      const reactValue = await GUESTBOOK_KV.get('react-build-js');
-      return new Response(JSON.stringify({ testLength: kvValue ? kvValue.length : 0, testExists: !!kvValue, reactLength: reactValue ? reactValue.length : 0, reactExists: !!reactValue, reactPreview: reactValue ? reactValue.substring(0, 50) : null }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ status: 'kv-bound-but-not-used' }), { headers: corsHeaders });
     }
     if (path === '/health') {
       return new Response(JSON.stringify({ status: 'online', node: 'FZ-001' }), { headers: corsHeaders });
