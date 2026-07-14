@@ -1,4 +1,4 @@
-const API_URL = 'https://fangzhifan-guestbook.zhifanfang86.workers.dev';
+const API_URL = '';
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
