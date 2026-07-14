@@ -30,7 +30,7 @@ async function handleRequest(request) {
   const path = url.pathname;
   const hostname = url.hostname;
   if (hostname === 'www.evafang.com') {
-    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age=86400' }});
+    return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age:86400' }});
   }
   if (url.protocol === 'http:') {
     return new Response(null, { status: 301, headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload' }});
@@ -41,7 +41,7 @@ async function handleRequest(request) {
       const svgKey = redirectUrl.replace('__embedded:svg:', '');
       const svgData = SVG_IMAGES[svgKey];
       if (svgData) {
-        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' }});
+        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age:86400' }});
       }
     }
     try {
@@ -68,7 +68,7 @@ async function handleRequest(request) {
         return new Response(body, {
           headers: {
             'Content-Type': contentType + '; charset=utf-8',
-            'Cache-Control': 'public, max-age=300',
+            'Cache-Control': 'public, max-age:300',
             'Access-Control-Allow-Origin': '*'
           }
         });
@@ -94,14 +94,9 @@ async function handleRequest(request) {
 <script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
 <link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
 <link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});(function(){function m(){var ai=document.querySelector('.ai-server-section');var hero=document.getElementById('hero');if(ai&&hero){hero.parentNode.insertBefore(ai,hero.nextSibling)}}function w(){var sections=document.querySelectorAll('section[id],section.ai-server-section');for(var i=0;i<sections.length;i++){var s=sections[i];s.style.width='100%';s.style.maxWidth='100vw';s.style.overflowX='hidden';s.style.boxSizing='border-box';s.style.paddingLeft='0';s.style.paddingRight='0';s.style.marginLeft='0';s.style.marginRight='0'}}setTimeout(function(){m();w()},1500);setTimeout(function(){m();w()},3000)})();}</script>
+<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});(function(){function m(){var ai=document.querySelector('.ai-server-section');var root=document.getElementById('root');if(!ai||!root)return false;var sections=root.querySelectorAll('section');if(sections.length===0)return false;var hero=sections[0];hero.parentNode.insertBefore(ai,hero.nextSibling);return true}function w(){var sections=document.querySelectorAll('section[id],section.ai-server-section');for(var i=0;i<sections.length;i++){var s=sections[i];s.style.width='100%';s.style.maxWidth='100vw';s.style.overflowX='hidden';s.style.boxSizing='border-box';s.style.paddingLeft='0';s.style.paddingRight='0';s.style.marginLeft='0';s.style.marginRight='0'}}setTimeout(function(){if(m())w()},1500);setTimeout(function(){if(m())w()},3000);setTimeout(function(){if(m())w()},5000);var rootEl=document.getElementById('root');if(rootEl){var obs=new MutationObserver(function(){if(m()){w();obs.disconnect()}});obs.observe(rootEl,{childList:true,subtree:true})}})();</script>
 <script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
 <style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
-.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;background:#0a0a0f;overflow:hidden}
-.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:0.6}
-.video-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.6) 0%,rgba(10,10,15,0.3) 50%,rgba(10,10,15,0.8) 100%);pointer-events:none}
-.video-fallback{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0a0a0f 100%);opacity:0;transition:opacity 0.5s}
-.video-fallback.active{opacity:1}
 .poem-line{font-family:'Noto Serif SC','Songti SC',serif;font-size:0.85rem;color:#c75b67!important;text-align:center!important;margin:20px auto 12px!important;letter-spacing:0.15em;opacity:0.9;font-weight:300;line-height:1.8;display:table!important}
 .guestbook-inner .empty{display:none!important}
 #messages:empty,.messages:empty{display:none!important}
@@ -138,7 +133,7 @@ async function handleRequest(request) {
 .card-grid,.services-grid,.portfolio-grid{grid-template-columns:repeat(2,1fr)!important}
 }
 #root{width:100%;max-width:100vw;overflow-x:hidden}
-</style>
+.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:-1;overflow:hidden;background:#0a0a0f}.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:.6}.video-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(10,10,15,.6) 0%,rgba(10,10,15,.3) 50%,rgba(10,10,15,.8) 100%);pointer-events:none}.video-fallback{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0d0d14 100%)}.video-fallback.active{display:block}</style>
 </head>
 <body>
 <div class="video-scroll-container" id="video-container">
