@@ -1,6 +1,7 @@
 (function() {
     'use strict';
     var STORAGE_KEY = 'fz_messages';
+    var CLOUD_API = '/messages';
 
     function showToast(msg, type) {
         var t = document.getElementById('toast');
@@ -35,11 +36,28 @@
         }).join('');
     }
 
-    function loadMessages() {
+    async function loadFromCloud() {
+        try {
+            var resp = await fetch(CLOUD_API, { method: 'GET' });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            var result = await resp.json();
+            if (result.success && Array.isArray(result.data)) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
+                renderMessages(result.data);
+                return true;
+            }
+        } catch (e) {
+            console.warn('[Guestbook] Cloud load failed, fallback to local:', e.message);
+        }
+        return false;
+    }
+
+    function loadFromLocal() {
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             var list = raw ? JSON.parse(raw) : [];
-            if (!list || list.length === 0) {
+            if (!Array.isArray(list)) list = [];
+            if (list.length === 0) {
                 list = [{
                     name: '小山',
                     message: '13057357652',
@@ -54,13 +72,40 @@
         }
     }
 
-    function saveMessage(name, message) {
+    async function initLoad() {
+        var cloudOk = await loadFromCloud();
+        if (!cloudOk) {
+            loadFromLocal();
+        }
+    }
+
+    async function saveMessage(name, message) {
         var entry = {
             name: name.substring(0, 50),
             message: message.substring(0, 500),
             time: new Date().toLocaleString('zh-CN'),
             timestamp: Date.now()
         };
+
+        try {
+            var resp = await fetch(CLOUD_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: entry.name, message: entry.message })
+            });
+            if (resp.ok) {
+                var result = await resp.json();
+                if (result.success && Array.isArray(result.data)) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
+                    renderMessages(result.data);
+                    showToast('已投递云端', 'ok');
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[Guestbook] Cloud save failed:', e.message);
+        }
+
         try {
             var raw = localStorage.getItem(STORAGE_KEY) || '[]';
             var list = JSON.parse(raw);
@@ -68,7 +113,7 @@
             var trimmed = list.slice(0, 50);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
             renderMessages(trimmed);
-            showToast('已保存到本地', 'ok');
+            showToast('已保存到本地（云端暂不可用）', 'ok');
         } catch (e) {
             showToast('保存失败', 'err');
         }
@@ -78,7 +123,7 @@
         var form = document.getElementById('guestbook-form');
         if (!form) return;
 
-        loadMessages();
+        initLoad();
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
