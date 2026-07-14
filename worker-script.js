@@ -3,9 +3,9 @@ addEventListener('fetch', event => {
 });
 
 const SVG_IMAGES = {
-  'ai-robot': 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ccircle cx=%22200%22 cy=%22120%22 r=%2250%22 fill=%22none%22 stroke=%22%23c4a882%22 stroke-width=%222%22/%3E%3Ccircle cx=%22185%22 cy=%22110%22 r=%225%22 fill=%22%23c4a882%22/%3E%3Ccircle cx=%22215%22 cy=%22110%22 r=%225%22 fill=%22%23c4a882%22/%3E%3Cpath d=%22M170 150 Q200 170 230 150%22 stroke=%22%23c4a882%22 stroke-width=%222%22 fill=%22none%22/%3E%3Ctext x=%22200%22 y=%22220%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-family=%22serif%22 font-size=%2214%22%3EAI 智能机器人%3C/text%3E%3C/svg%3E',
-  'ai-server': 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Crect x=%22120%22 y=%2280%22 width=%22160%22 height=%22140%22 rx=%225%22 fill=%22none%22 stroke=%22%23c4a882%22 stroke-width=%222%22/%3E%3Cline x1=%22120%22 y1=%22110%22 x2=%22280%22 y2=%22110%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22120%22 y1=%22140%22 x2=%22280%22 y2=%22140%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22120%22 y1=%22170%22 x2=%22280%22 y2=%22170%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Ccircle cx=%22140%22 cy=%22125%22 r=%223%22 fill=%22%23c4a882%22/%3E%3Ccircle cx=%22140%22 cy=%22155%22 r=%223%22 fill=%22%23c4a882%22/%3E%3Ccircle cx=%22140%22 cy=%22185%22 r=%223%22 fill=%22%23c4a882%22/%3E%3Ctext x=%22200%22 y=%22250%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-family=%22serif%22 font-size=%2214%22%3EAI 服务器集群%3C/text%3E%3C/svg%3E',
-  'local-ai-hero': 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22260%22 viewBox=%220 0 800 260%22%3E%3Crect width=%22800%22 height=%22260%22 fill=%22%231a1a2e%22/%3E%3Crect x=%22250%22 y=%2260%22 width=%22300%22 height=%22140%22 rx=%228%22 fill=%22none%22 stroke=%22%23c4a882%22 stroke-width=%222%22/%3E%3Cline x1=%22250%22 y1=%22100%22 x2=%22550%22 y2=%22100%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22250%22 y1=%22130%22 x2=%22550%22 y2=%22130%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Cline x1=%22250%22 y1=%22160%22 x2=%22550%22 y2=%22160%22 stroke=%22%23c4a882%22 stroke-width=%221%22/%3E%3Ccircle cx=%22280%22 cy=%2280%22 r=%224%22 fill=%22%23c4a882%22/%3E%3Ctext x=%22400%22 y=%22220%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-family=%22serif%22 font-size=%2216%22%3E本地 AI 全栈基础设施%3C/text%3E%3C/svg%3E'
+  'ai-robot': `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#1a1a2e"/><circle cx="200" cy="120" r="50" fill="none" stroke="#c4a882" stroke-width="2"/><circle cx="185" cy="110" r="5" fill="#c4a882"/><circle cx="215" cy="110" r="5" fill="#c4a882"/><path d="M170 150 Q200 170 230 150" stroke="#c4a882" stroke-width="2" fill="none"/><text x="200" y="220" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="14">AI 智能机器人</text></svg>`,
+  'ai-server': `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#1a1a2e"/><rect x="120" y="80" width="160" height="140" rx="5" fill="none" stroke="#c4a882" stroke-width="2"/><line x1="120" y1="110" x2="280" y2="110" stroke="#c4a882" stroke-width="1"/><line x1="120" y1="140" x2="280" y2="140" stroke="#c4a882" stroke-width="1"/><line x1="120" y1="170" x2="280" y2="170" stroke="#c4a882" stroke-width="1"/><circle cx="140" cy="125" r="3" fill="#c4a882"/><circle cx="140" cy="155" r="3" fill="#c4a882"/><circle cx="140" cy="185" r="3" fill="#c4a882"/><text x="200" y="250" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="14">AI 服务器集群</text></svg>`,
+  'local-ai-hero': `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="260" viewBox="0 0 800 260"><rect width="800" height="260" fill="#1a1a2e"/><rect x="250" y="60" width="300" height="140" rx="8" fill="none" stroke="#c4a882" stroke-width="2"/><line x1="250" y1="100" x2="550" y2="100" stroke="#c4a882" stroke-width="1"/><line x1="250" y1="130" x2="550" y2="130" stroke="#c4a882" stroke-width="1"/><line x1="250" y1="160" x2="550" y2="160" stroke="#c4a882" stroke-width="1"/><circle cx="280" cy="80" r="4" fill="#c4a882"/><text x="400" y="220" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="16">本地 AI 全栈基础设施</text></svg>`
 };
 
 const IMAGE_MAP = {
@@ -41,7 +41,7 @@ async function handleRequest(request) {
       const svgKey = redirectUrl.replace('__embedded:svg:', '');
       const svgData = SVG_IMAGES[svgKey];
       if (svgData) {
-        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' }});
+        return new Response(svgData, { status: 200, headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age:86400' }});
       }
     }
     try {
@@ -68,7 +68,7 @@ async function handleRequest(request) {
         return new Response(body, {
           headers: {
             'Content-Type': contentType + '; charset=utf-8',
-            'Cache-Control': 'public, max-age=300',
+            'Cache-Control': 'public, max-age:300',
             'Access-Control-Allow-Origin': '*'
           }
         });
@@ -137,7 +137,7 @@ async function handleRequest(request) {
 </head>
 <body>
 <div class="video-scroll-container" id="video-container">
-<video id="scroll-video" muted playsinline preload="auto" loop>
+<video id="scroll-video" muted playsinline preload="auto">
 <source src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4" type="video/mp4">
 <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
 </video>
@@ -248,7 +248,7 @@ setTimeout(r,1500);setTimeout(r,3000);setTimeout(r,5000);
 </html>`;
       const securityHeaders = {
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=60',
+        'Cache-Control': 'public, max-age:60',
         'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload',
         'X-Content-Type-Options': 'nosniff',
         'Referrer-Policy': 'strict-origin-when-cross-origin'
