@@ -39,6 +39,15 @@
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
             var list = raw ? JSON.parse(raw) : [];
+            if (!list || list.length === 0) {
+                list = [{
+                    name: '小山',
+                    message: '13057357652',
+                    time: new Date().toLocaleString('zh-CN'),
+                    timestamp: Date.now()
+                }];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            }
             renderMessages(list);
         } catch (e) {
             renderMessages([]);
