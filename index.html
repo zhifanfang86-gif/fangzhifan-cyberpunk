@@ -52,78 +52,10 @@
         </div>
     </section>
 
-    <!-- 投递联系 -->
-    <section class="guestbook-section" id="contact">
-        <div class="guestbook-inner">
-            <h2 class="guestbook-title">
-                <span class="guestbook-mark">投</span>
-                <span>投递</span>
-                <span class="guestbook-line"></span>
-            </h2>
-
-            <form class="guestbook-form" id="contact-form">
-                <div class="form-field">
-                    <label>称呼</label>
-                    <input type="text" id="contact-name" placeholder="阁下尊姓大名" required>
-                </div>
-                <div class="form-field">
-                    <label>邮箱</label>
-                    <input type="email" id="contact-email" placeholder="如需回复，请留下邮箱">
-                </div>
-                <div class="form-field">
-                    <label>留言</label>
-                    <textarea id="contact-message" placeholder="详述需求..." required></textarea>
-                </div>
-                <button type="submit" class="submit-btn">发送邮件</button>
-            </form>
-
-            <div id="contact-result" style="margin-top:24px;font-size:0.9rem;color:#5a8a7e;"></div>
-        </div>
-    </section>
-
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
     <script src="./assets/guestbook.js"></script>
     <script src="./assets/video-scroll.js"></script>
-
-    <script>
-    (function() {
-        var form = document.getElementById('contact-form');
-        var result = document.getElementById('contact-result');
-        function showContact(msg, ok) {
-            result.textContent = msg;
-            result.style.color = ok ? '#5a8a7e' : '#c45c48';
-        }
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                var name = document.getElementById('contact-name').value.trim();
-                var email = document.getElementById('contact-email').value.trim();
-                var message = document.getElementById('contact-message').value.trim();
-                if (!name || !message) {
-                    showContact('请填写称呼和留言', false);
-                    return;
-                }
-                showContact('发送中...', true);
-                fetch('/api/contact', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({name: name, email: email, message: message})
-                }).then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        showContact('✓ 邮件已发送，我会尽快回复', true);
-                        form.reset();
-                    } else {
-                        showContact('发送失败: ' + (data.error || '未知错误'), false);
-                    }
-                }).catch(function(err) {
-                    showContact('网络错误: ' + err.message, false);
-                });
-            });
-        }
-    })();
-    </script>
 </body>
 </html>
