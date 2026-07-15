@@ -9,11 +9,9 @@
     <link rel="preconnect" href="https://gstatic.loli.net" crossorigin=""/>
     <link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"/>
     <link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-    <script type="module" crossorigin="" src="./assets/index-4r6Lbbs.js"></script>
-    <link rel="stylesheet" crossorigin="" href="./assets/index-BYiqeDSS.css"/>
+    <script type="module" crossorigin="" src="./assets/index-4r6Lbbs8.js"></script>
+    <link rel="stylesheet" crossorigin="" href="./assets/index-BYiqeDJS.css"/>
     <link rel="stylesheet" href="./assets/guestbook.css"/>
-    <!-- 注：替换字体文件的路径为本地或国内 CDN -->
-    <script src="./assets/text-replacement.js"></script>
 </head>
 <body>
     <!-- 视频滚动背景 -->
@@ -30,8 +28,31 @@
     <div id="root"></div>
 
     <!-- 尺牍留言板 -->
+    <section class="guestbook-section" id="guestbook">
+        <div class="guestbook-inner">
+            <h2 class="guestbook-title">
+                <span class="guestbook-mark">尺</span>
+                <span>尺牍</span>
+                <span class="guestbook-line"></span>
+            </h2>
 
-    <!-- 联系表单 -->
+            <form class="guestbook-form" id="guestbook-form">
+                <div class="form-field">
+                    <label>称呼</label>
+                    <input type="text" id="name" placeholder="尊姓大名" required>
+                </div>
+                <div class="form-field">
+                    <label>留言</label>
+                    <textarea id="message" placeholder="原来路遥马急，一生只够爱一人" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">投递尺牍</button>
+            </form>
+
+            <div id="messages" class="messages"></div>
+        </div>
+    </section>
+
+    <!-- 投递联系 -->
     <section class="guestbook-section" id="contact">
         <div class="guestbook-inner">
             <h2 class="guestbook-title">
@@ -57,29 +78,6 @@
             </form>
 
             <div id="contact-result" style="margin-top:24px;font-size:0.9rem;color:#5a8a7e;"></div>
-        </div>
-    </section>
-    <section class="guestbook-section" id="guestbook">
-        <div class="guestbook-inner">
-            <h2 class="guestbook-title">
-                <span class="guestbook-mark">尺</span>
-                <span>尺牍</span>
-                <span class="guestbook-line"></span>
-            </h2>
-
-            <form class="guestbook-form" id="guestbook-form">
-                <div class="form-field">
-                    <label>称呼</label>
-                    <input type="text" id="name" placeholder="尊姓大名" required>
-                </div>
-                <div class="form-field">
-                    <label>留言</label>
-                    <textarea id="message" placeholder="在此留墨..." required></textarea>
-                </div>
-                <button type="submit" class="submit-btn">投递尺牍</button>
-            </form>
-
-            <div id="messages" class="messages"></div>
         </div>
     </section>
 
@@ -112,9 +110,8 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({name: name, email: email, message: message})
-                }).then(function(r) {
-                    return r.json();
-                }).then(function(data) {
+                }).then(function(r) { return r.json(); })
+                .then(function(data) {
                     if (data.success) {
                         showContact('✓ 邮件已发送，我会尽快回复', true);
                         form.reset();
