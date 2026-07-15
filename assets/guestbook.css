@@ -125,10 +125,13 @@
     flex-direction: column;
     gap: 28px;
     margin-bottom: 32px;
+    width: 100%;
 }
 
 .form-field {
     position: relative;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .form-field label {
@@ -145,6 +148,7 @@
 .form-field input,
 .form-field textarea {
     width: 100%;
+    max-width: 100%;
     background: transparent;
     border: none;
     border-bottom: 1px solid var(--paper-rule);
@@ -155,6 +159,7 @@
     outline: none;
     transition: border-color 0.4s;
     line-height: 1.8;
+    box-sizing: border-box;
 }
 
 .form-field input:focus,
@@ -187,6 +192,7 @@
     transition: all 0.3s;
     letter-spacing: 0.15em;
     margin-top: 8px;
+    white-space: nowrap;
 }
 
 .submit-btn:hover {
@@ -314,14 +320,19 @@
 /* 响应式 */
 @media (max-width: 768px) {
     .guestbook-inner {
-        padding: 0 20px;
+        padding: 0 16px;
     }
     .guestbook-title {
         font-size: 1.2rem;
+        gap: 12px;
     }
     .guestbook-poem {
         font-size: 13px;
         letter-spacing: 1.5px;
+    }
+    .submit-btn {
+        padding: 10px 28px;
+        font-size: 0.85rem;
     }
     .video-scroll-container video {
         opacity: 0.1;
