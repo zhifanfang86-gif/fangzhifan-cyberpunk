@@ -15,160 +15,178 @@
     <style>
         .ai-server-section {
             position: relative;
-            padding: 80px 20px;
-            color: #e0e0e0;
-            font-family: 'Noto Sans SC', sans-serif;
-            overflow: hidden;
-        }
-        .ai-server-section::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 50%, #0a0e1a 100%);
-            z-index: -2;
-        }
-        .ai-server-section::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%);
-            z-index: -1;
+            z-index: 10;
+            background: #111111;
+            color: #eae6de;
+            padding: 100px 24px 80px;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
         .ai-server-inner {
             max-width: 960px;
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .ai-server-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        .ai-server-header h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin: 0 0 16px;
-            background: linear-gradient(90deg, #6366f1, #ec4899, #22d3ee);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .ai-server-header p {
-            font-size: 1.1rem;
-            color: #94a3b8;
-            margin: 0;
-            font-weight: 400;
-        }
-        .ai-server-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
-        }
-        .ai-server-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 32px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-        .ai-server-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-        .ai-server-card-icon {
+        .ai-server-section h2 {
+            font-family: 'Noto Serif SC', serif;
             font-size: 2rem;
-            margin-bottom: 16px;
-        }
-        .ai-server-card h3 {
-            font-size: 1.2rem;
             font-weight: 700;
-            margin: 0 0 12px;
-            color: #f1f5f9;
-        }
-        .ai-server-card p {
-            font-size: 0.95rem;
-            color: #94a3b8;
-            line-height: 1.6;
-            margin: 0;
-        }
-        .ai-server-scenarios {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 60px;
-        }
-        .ai-server-scenarios h3 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin: 0 0 24px;
-            color: #f1f5f9;
             text-align: center;
+            margin-bottom: 12px;
+            color: #d4a853;
+            letter-spacing: 2px;
         }
-        .ai-server-scenarios ul {
+        .ai-server-section .subtitle {
+            text-align: center;
+            color: #eae6de99;
+            margin-bottom: 48px;
+            font-size: 0.95rem;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .server-visual {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #1a2a1a 0%, #2a1a1a 50%, #1a1a2a 100%);
+            border-radius: 4px;
+            margin-bottom: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .server-visual::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4a853' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        .capability-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        .cap-card {
+            background: rgba(234, 230, 222, 0.05);
+            border: 1px solid rgba(234, 230, 222, 0.08);
+            padding: 24px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .cap-card:hover {
+            background: rgba(234, 230, 222, 0.08);
+            border-color: rgba(212, 168, 83, 0.2);
+        }
+        .cap-card h4 {
+            color: #d4a853;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        .cap-card p {
+            color: #eae6de99;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .scene-section {
+            margin-bottom: 48px;
+        }
+        .scene-section h3 {
+            color: #d4a853;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            font-family: 'Noto Serif SC', serif;
+        }
+        .scene-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 24px;
             list-style: none;
             padding: 0;
             margin: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
         }
-        .ai-server-scenarios li {
-            padding: 12px 16px;
-            background: rgba(99, 102, 241, 0.08);
-            border-radius: 8px;
-            color: #cbd5e1;
-            font-size: 0.95rem;
-            border-left: 3px solid #6366f1;
+        .scene-list li {
+            color: #eae6decc;
+            font-size: 0.9rem;
+            padding-left: 16px;
+            position: relative;
+            font-family: 'Noto Sans SC', sans-serif;
         }
-        .ai-server-value {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
+        .scene-list li::before {
+            content: '•';
+            color: #d4a853;
+            position: absolute;
+            left: 0;
         }
-        .ai-server-value-item {
+        .value-section {
+            margin-bottom: 48px;
+        }
+        .value-section h3 {
+            color: #d4a853;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
             text-align: center;
-            padding: 32px 24px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            transition: transform 0.3s ease;
+            font-family: 'Noto Serif SC', serif;
         }
-        .ai-server-value-item:hover {
-            transform: translateY(-4px);
-            border-color: rgba(236, 72, 153, 0.3);
+        .value-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
         }
-        .ai-server-value-item .value-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #ec4899, #22d3ee);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .value-item .num {
+            color: #d4a853;
+            font-size: 1.5rem;
+            font-weight: 700;
             display: block;
             margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
         }
-        .ai-server-value-item .value-label {
+        .value-item h4 {
+            color: #eae6de;
             font-size: 1rem;
-            color: #94a3b8;
+            margin-bottom: 8px;
+            font-family: 'Noto Serif SC', serif;
         }
-        .ai-server-footer {
+        .value-item p {
+            color: #eae6de99;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .footer-text {
             text-align: center;
-            padding: 32px;
-            color: #64748b;
-            font-size: 0.9rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            color: #eae6de99;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            border-top: 1px solid rgba(234, 230, 222, 0.08);
+            padding-top: 32px;
+            font-family: 'Noto Sans SC', sans-serif;
         }
-        @media (max-width: 640px) {
-            .ai-server-header h2 { font-size: 1.8rem; }
-            .ai-server-cards { grid-template-columns: 1fr; }
-            .ai-server-value { grid-template-columns: 1fr; }
+        .footer-text p {
+            margin-bottom: 16px;
+        }
+        .footer-text .highlight {
+            color: #d4a853;
+        }
+        @media (max-width: 768px) {
+            .ai-server-section {
+                padding: 60px 16px 40px;
+            }
+            .ai-server-section h2 {
+                font-size: 1.5rem;
+            }
+            .capability-grid,
+            .value-grid {
+                grid-template-columns: 1fr;
+            }
+            .scene-list {
+                grid-template-columns: 1fr;
+            }
+            .server-visual {
+                height: 160px;
+            }
         }
     </style>
 </head>
@@ -189,58 +207,63 @@
     <!-- 本地 AI 全栈微服务器系统 -->
     <section class="ai-server-section" id="ai-server">
         <div class="ai-server-inner">
-            <div class="ai-server-header">
-                <h2>本地 AI 全栈微服务器系统</h2>
-                <p>边缘部署 · 离线可用 · 一键启动 · 秒级响应</p>
-            </div>
+            <h2>本地 AI 全栈微服务器系统</h2>
+            <p class="subtitle">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
 
-            <div class="ai-server-cards">
-                <div class="ai-server-card">
-                    <div class="ai-server-card-icon">🧠</div>
-                    <h3>本地大模型推理</h3>
-                    <p>内置轻量化 LLM 引擎，无需云端 API，断网环境下仍可完成文本生成、代码补全与智能问答，数据零出域。</p>
+            <div class="server-visual"></div>
+
+            <div class="capability-grid">
+                <div class="cap-card">
+                    <h4>稳定部署</h4>
+                    <p>本地大模型稳定运行，支持多场景自动化工作流</p>
                 </div>
-                <div class="ai-server-card">
-                    <div class="ai-server-card-icon">⚡</div>
-                    <h3>全栈运行时一体化</h3>
-                    <p>前端 React/Vue + 后端 Node.js/Go + 数据库 SQLite 全部打包在单一可执行文件内，一个命令启动完整服务。</p>
+                <div class="cap-card">
+                    <h4>安全远程</h4>
+                    <p>完整远程安全访问、自动监控修复、自启动能力，装好即用</p>
                 </div>
-                <div class="ai-server-card">
-                    <div class="ai-server-card-icon">🔒</div>
-                    <h3>零配置安全网关</h3>
-                    <p>内置 HTTPS 自动证书、JWT 鉴权、速率限制与 CORS 策略，开箱即用，无需 Nginx 或额外反向代理。</p>
+                <div class="cap-card">
+                    <h4>纯本地闭环</h4>
+                    <p>所有数据与服务均在本地运行，无任何云端依赖</p>
                 </div>
             </div>
 
-            <div class="ai-server-scenarios">
+            <div class="scene-section">
                 <h3>使用场景</h3>
-                <ul>
-                    <li>💼 企业内部知识库问答助手</li>
-                    <li>🏠 家庭 NAS 私有 AI 网关</li>
-                    <li>🚧 工地/野外离线环境智能工具</li>
-                    <li>🏫 学校实验室低代码教学平台</li>
-                    <li>🏥 医疗机构数据隐私合规系统</li>
-                    <li>🏪 门店本地营销内容生成器</li>
+                <ul class="scene-list">
+                    <li>节省5位数开支项目</li>
+                    <li>数据不出域</li>
+                    <li>主要面向企业以及公司</li>
+                    <li>个人构建（医疗、金融、信息隐私）</li>
+                    <li>个人逐步开放</li>
+                    <li>入门配置推荐（5万起步）</li>
                 </ul>
             </div>
 
-            <div class="ai-server-value">
-                <div class="ai-server-value-item">
-                    <span class="value-number">10ms</span>
-                    <span class="value-label">本地平均响应延迟</span>
-                </div>
-                <div class="ai-server-value-item">
-                    <span class="value-number">0</span>
-                    <span class="value-label">云端 API 调用成本</span>
-                </div>
-                <div class="ai-server-value-item">
-                    <span class="value-number">100%</span>
-                    <span class="value-label">数据本地留存率</span>
+            <div class="value-section">
+                <h3>商业价值</h3>
+                <div class="value-grid">
+                    <div class="value-item">
+                        <span class="num">01</span>
+                        <h4>成本优势显著</h4>
+                        <p>一台高性能主机，整体拥有成本远低于云端同等算力</p>
+                    </div>
+                    <div class="value-item">
+                        <span class="num">02</span>
+                        <h4>数据安全与合规</h4>
+                        <p>全部本地构建，数据永不外传，天然满足高隐私要求</p>
+                    </div>
+                    <div class="value-item">
+                        <span class="num">03</span>
+                        <h4>效率与灵活性</h4>
+                        <p>一次构建即可快速复制部署；支持按需定制</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="ai-server-footer">
-                基于 Cloudflare Workers + KV + D1 技术栈构建，支持全球边缘节点就近访问
+            <div class="footer-text">
+                <p>本地构建能力：从零到生产级全栈，已形成完整工程化交付体系（结构树、验收标准、运维脚本包），可直接输出给需要<span class="highlight">"自有AI服务器"</span>的客户。</p>
+                <p>如果你正在寻找一套真正属于自己的、可掌控的本地AI基础设施，我可以提供从硬件推荐、系统构建、到完整交付与培训的全流程服务。</p>
+                <p>欢迎通过下方<span class="highlight">尺牍留言或投递</span>，我会给出针对性方案。</p>
             </div>
         </div>
     </section>
