@@ -2,6 +2,7 @@
     'use strict';
     var STORAGE_KEY = 'fz_messages';
     var CLOUD_API = '/messages';
+    var CONTACT_API = '/api/contact';
 
     function showToast(msg, type) {
         var t = document.getElementById('toast');
@@ -79,22 +80,24 @@
         }
     }
 
-    async function sendEmail(name, message) {
+    async function sendEmail(name, email, message) {
         try {
-            var resp = await fetch('/api/contact', {
+            var resp = await fetch(CONTACT_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, message: message })
+                body: JSON.stringify({ name: name, email: email || '', message: message })
             });
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            var result = await resp.json();
-            if (result.success) {
-                console.log('[Guestbook] Email notification sent, id:', result.id);
+            var result = await resp.json().catch(function() { return {}; });
+            if (resp.ok && result.success) {
+                console.log('[Guestbook] Email notification sent:', result.id);
+                return true;
             } else {
-                console.warn('[Guestbook] Email notification failed:', result.error);
+                console.warn('[Guestbook] Email notification failed:', result.error || resp.status);
+                return false;
             }
         } catch (e) {
-            console.warn('[Guestbook] Email send failed:', e.message);
+            console.warn('[Guestbook] Email notification error:', e.message);
+            return false;
         }
     }
 
@@ -118,7 +121,7 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
                     renderMessages(result.data);
                     showToast('已投递云端', 'ok');
-                    sendEmail(entry.name, entry.message);
+                    sendEmail(entry.name, '', entry.message);
                     return;
                 }
             }
@@ -134,7 +137,7 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
             renderMessages(trimmed);
             showToast('已保存到本地（云端暂不可用）', 'ok');
-            sendEmail(entry.name, entry.message);
+            sendEmail(entry.name, '', entry.message);
         } catch (e) {
             showToast('保存失败', 'err');
         }
@@ -148,7 +151,9 @@
 
         // 每30秒轮询刷新留言列表
         setInterval(function() {
-            loadFromCloud();
+            loadFromCloud().catch(function(e) {
+                console.warn('[Guestbook] Polling refresh failed:', e.message);
+            });
         }, 30000);
 
         form.addEventListener('submit', function(e) {
