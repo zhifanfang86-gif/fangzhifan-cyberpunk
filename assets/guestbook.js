@@ -32,6 +32,7 @@
                     '<span class="message-author">' + escapeHtml(m.name) + '</span>' +
                     '<span class="message-time">' + (m.time || '') + '</span>' +
                 '</div>' +
+                (m.email ? '<div class="message-email">' + escapeHtml(m.email) + '</div>' : '') +
                 '<div class="message-body">' + escapeHtml(m.message) + '</div>' +
             '</div>';
         }).join('');
@@ -61,6 +62,7 @@
             if (list.length === 0) {
                 list = [{
                     name: '小山',
+                    email: '',
                     message: '13057357652',
                     time: '2026-07-14 10:07:56',
                     timestamp: 1783994875884
@@ -101,9 +103,10 @@
         }
     }
 
-    async function saveMessage(name, message) {
+    async function saveMessage(name, message, email) {
         var entry = {
             name: name.substring(0, 50),
+            email: email ? email.substring(0, 100) : '',
             message: message.substring(0, 500),
             time: new Date().toLocaleString('zh-CN'),
             timestamp: Date.now()
@@ -113,7 +116,7 @@
             var resp = await fetch(CLOUD_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: entry.name, message: entry.message })
+                body: JSON.stringify({ name: entry.name, email: entry.email, message: entry.message })
             });
             if (resp.ok) {
                 var result = await resp.json();
@@ -121,7 +124,7 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
                     renderMessages(result.data);
                     showToast('已投递云端', 'ok');
-                    sendEmail(entry.name, '', entry.message);
+                    sendEmail(entry.name, entry.email, entry.message);
                     return;
                 }
             }
@@ -137,7 +140,7 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
             renderMessages(trimmed);
             showToast('已保存到本地（云端暂不可用）', 'ok');
-            sendEmail(entry.name, '', entry.message);
+            sendEmail(entry.name, entry.email, entry.message);
         } catch (e) {
             showToast('保存失败', 'err');
         }
@@ -149,27 +152,36 @@
 
         initLoad();
 
-        // 每30秒轮询刷新留言列表
+        // 每10秒轮询刷新留言列表（实时更新）
         setInterval(function() {
             loadFromCloud().catch(function(e) {
                 console.warn('[Guestbook] Polling refresh failed:', e.message);
             });
-        }, 30000);
+        }, 10000);
+
+        // 页面可见时立即刷新
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadFromCloud().catch(function() {});
+            }
+        });
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             var nameEl = document.getElementById('name');
+            var emailEl = document.getElementById('email');
             var msgEl = document.getElementById('message');
             if (!nameEl || !msgEl) return;
 
             var name = nameEl.value.trim();
+            var email = emailEl ? emailEl.value.trim() : '';
             var message = msgEl.value.trim();
             if (!name || !message) {
                 showToast('请填写称呼和留言', 'err');
                 return;
             }
 
-            saveMessage(name, message);
+            saveMessage(name, message, email);
             form.reset();
         });
     }
