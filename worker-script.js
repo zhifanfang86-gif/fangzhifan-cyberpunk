@@ -3,7 +3,7 @@ addEventListener('fetch', event => {
 });
 
 /* ============================================================
- *  evafang.com Worker — v2.0
+ *  evafang.com Worker — v3.0
  *  功能: 尺牍云端(KV) + 联系表单邮件(Resend) + 图片代理 + 静态资源
  *  长期维护: 配置集中、路由模块化、错误统一
  * ============================================================ */
@@ -195,7 +195,7 @@ async function proxyAsset(assetPath) {
     return new Response(body, {
       headers: {
         'Content-Type': contentType + '; charset=utf-8',
-        'Cache-Control': 'public, max-age:300',
+        'Cache-Control': 'public, max-age=300',
         'Access-Control-Allow-Origin': '*'
       }
     });
@@ -210,8 +210,8 @@ function renderIndexHtml() {
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>方志凡 — 微微赛博</title>
-<meta name="description" content="方志凡 — 微微赛博的个人数字居所"/>
+<title>fang zhi fan</title>
+<meta name="description" content="fang zhi fan — AI Build, Full Stack, Cyber Security"/>
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
 <link rel="canonical" href="https://evafang.com/"/>
 <link rel="preconnect" href="https://fonts.loli.net"/>
@@ -221,12 +221,11 @@ function renderIndexHtml() {
 <script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
 <link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
 <link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});(function(){function m(){var ai=document.querySelector('.ai-server-section');var root=document.getElementById('root');if(!ai||!root)return false;var sections=root.querySelectorAll('section');if(sections.length===0)return false;var hero=sections[0];hero.parentNode.insertBefore(ai,hero.nextSibling);return true}function w(){var sections=document.querySelectorAll('section[id],section.ai-server-section');for(var i=0;i<sections.length;i++){var s=sections[i];s.style.width='100%';s.style.maxWidth='100vw';s.style.overflowX='hidden';s.style.boxSizing='border-box';s.style.paddingLeft='0';s.style.paddingRight='0';s.style.marginLeft='0';s.style.marginRight='0'}}setTimeout(function(){if(m())w()},1500);setTimeout(function(){if(m())w()},3000);setTimeout(function(){if(m())w()},5000);var rootEl=document.getElementById('root');if(rootEl){var obs=new MutationObserver(function(){if(m()){w();obs.disconnect()}});obs.observe(rootEl,{childList:true,subtree:true})}})();</script>
+<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
 <script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
 <style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
-.poem-line{font-family:'Noto Serif SC','Songti SC',serif;font-size:0.85rem;color:#c75b67!important;text-align:center!important;margin:20px auto 12px!important;letter-spacing:0.15em;opacity:0.9;font-weight:300;line-height:1.8;display:table!important}
-.guestbook-inner .empty{display:none!important}
-#messages:empty,.messages:empty{display:none!important}
+.ai-server-section{width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box;padding:80px 24px 60px;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);position:relative}
+.ai-server-inner{width:100%;max-width:1100px;margin:0 auto;position:relative;z-index:1;box-sizing:border-box}
 .guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:60px 0!important;background:linear-gradient(180deg,#ffffff 0%,#f8f5f0 50%,#f0ebe0 100%)!important;border-top:1px solid #e8e0d4;border-bottom:1px solid #e8e0d4;box-sizing:border-box!important}
 .guestbook-inner{width:100%!important;max-width:640px;margin:0 auto!important;padding:0 24px;box-sizing:border-box!important;overflow-x:hidden!important}
 .guestbook-title,.guestbook-title span{color:#3a3228!important;max-width:100%!important}
@@ -239,7 +238,7 @@ function renderIndexHtml() {
 .submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
 .grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
 @media(max-width:768px){
-.ai-server-section{padding-left:48px!important}
+.ai-server-section{padding:60px 16px 40px!important}
 .hero-title{font-size:2rem!important}.hero-subtitle{font-size:1rem!important}.section-title{font-size:1.5rem!important}
 .card-grid,.services-grid,.portfolio-grid{grid-template-columns:1fr!important;gap:1rem!important;padding:0 1rem!important}
 .nav-links{display:none!important}.mobile-nav{display:flex!important}.container{padding:0 1rem!important}
@@ -274,8 +273,8 @@ function renderIndexHtml() {
 
 <div id="root"></div>
 
-<section class="ai-server-section" style="width:100%;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);padding:30px 16px 40px;position:relative">
-<div style="max-width:1100px;margin:0 auto;position:relative;z-index:1">
+<section class="ai-server-section" id="ai-server">
+<div class="ai-server-inner">
 <div style="text-align:center;margin-bottom:30px">
 <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#c4a882;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:16px;opacity:0.8">独立构建 · 长期验证</div>
 <h2 style="font-family:'Noto Serif SC',serif;font-size:2.2rem;font-weight:600;color:#e8d5b5;margin:0 0 16px;letter-spacing:0.05em">本地 AI 全栈微服务器系统</h2>
@@ -342,6 +341,7 @@ function renderIndexHtml() {
 <h2 class="guestbook-title"><span class="guestbook-mark">尺</span><span>尺牍</span><span class="guestbook-line"></span></h2>
 <form class="guestbook-form" id="guestbook-form">
 <div class="form-field"><label>称呼</label><input type="text" id="name" placeholder="阁下尊姓大名" required></div>
+<div class="form-field"><label>邮箱</label><input type="email" id="email" placeholder="联系邮箱（选填）"></div>
 <div class="form-field"><label>留言</label><textarea id="message" placeholder="在此落笔..." required></textarea></div>
 <button type="submit" class="submit-btn">投递</button>
 </form>
@@ -371,6 +371,62 @@ setTimeout(r,1500);setTimeout(r,3000);setTimeout(r,5000);
 })();
 </script>
 <script src="/assets/video-scroll.js"></script>
+<script>
+(function(){
+function positionAISection(){
+  var ai=document.querySelector('.ai-server-section');
+  var root=document.getElementById('root');
+  if(!ai||!root)return false;
+  var sections=root.querySelectorAll('section, article, .section, [class*="section"], [class*="hero"], [class*="Hero"]');
+  if(sections.length===0){
+    var children=root.children;
+    for(var i=0;i<children.length;i++){
+      var tag=children[i].tagName;
+      if(tag!=='SCRIPT'&&tag!=='STYLE'&&tag!=='NOSCRIPT'){
+        sections=[children[i]];
+        break;
+      }
+    }
+  }
+  if(sections.length===0)return false;
+  var hero=sections[0];
+  if(ai.parentNode!==hero.parentNode){
+    hero.parentNode.insertBefore(ai,hero.nextSibling);
+  }
+  ai.style.width='100%';
+  ai.style.maxWidth='100vw';
+  ai.style.overflowX='hidden';
+  ai.style.boxSizing='border-box';
+  return true;
+}
+function fixAllWidths(){
+  var sections=document.querySelectorAll('section[id],section.ai-server-section');
+  for(var i=0;i<sections.length;i++){
+    var s=sections[i];
+    s.style.width='100%';
+    s.style.maxWidth='100vw';
+    s.style.overflowX='hidden';
+    s.style.boxSizing='border-box';
+    s.style.paddingLeft='0';
+    s.style.paddingRight='0';
+    s.style.marginLeft='0';
+    s.style.marginRight='0';
+  }
+}
+setTimeout(function(){if(positionAISection())fixAllWidths()},1500);
+setTimeout(function(){if(positionAISection())fixAllWidths()},3000);
+setTimeout(function(){if(positionAISection())fixAllWidths()},5000);
+setTimeout(function(){if(positionAISection())fixAllWidths()},8000);
+var rootEl=document.getElementById('root');
+if(rootEl){
+  var obs=new MutationObserver(function(){
+    if(positionAISection()){fixAllWidths();obs.disconnect();}
+  });
+  obs.observe(rootEl,{childList:true,subtree:true});
+}
+window.addEventListener('load',function(){positionAISection();fixAllWidths();});
+})();
+</script>
 </body>
 </html>`;
 }
@@ -423,12 +479,14 @@ async function handleRequest(request, env) {
       try {
         const body = await request.json();
         const name = sanitizeInput(body.name, 50) || '匿名';
+        const email = sanitizeInput(body.email, 100) || '';
         const message = sanitizeInput(body.message, 500);
         if (!message) {
           return jsonResponse({ success: false, error: '留言内容不能为空' }, 400);
         }
         const entry = {
           name,
+          email,
           message,
           time: new Date().toLocaleString('zh-CN'),
           timestamp: Date.now()
@@ -467,7 +525,7 @@ async function handleRequest(request, env) {
   }
 
   if (path === '/health') {
-    return jsonResponse({ success: true, status: 'online', node: 'FZ-001', version: '2.0' });
+    return jsonResponse({ success: true, status: 'online', node: 'FZ-001', version: '3.0' });
   }
 
   if (path === '/' || path === '/index.html') {
