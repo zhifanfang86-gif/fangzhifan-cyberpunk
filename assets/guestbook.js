@@ -79,6 +79,25 @@
         }
     }
 
+    async function sendEmail(name, message) {
+        try {
+            var resp = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, message: message })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            var result = await resp.json();
+            if (result.success) {
+                console.log('[Guestbook] Email notification sent, id:', result.id);
+            } else {
+                console.warn('[Guestbook] Email notification failed:', result.error);
+            }
+        } catch (e) {
+            console.warn('[Guestbook] Email send failed:', e.message);
+        }
+    }
+
     async function saveMessage(name, message) {
         var entry = {
             name: name.substring(0, 50),
@@ -99,6 +118,7 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(result.data));
                     renderMessages(result.data);
                     showToast('已投递云端', 'ok');
+                    sendEmail(entry.name, entry.message);
                     return;
                 }
             }
@@ -114,6 +134,7 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
             renderMessages(trimmed);
             showToast('已保存到本地（云端暂不可用）', 'ok');
+            sendEmail(entry.name, entry.message);
         } catch (e) {
             showToast('保存失败', 'err');
         }
@@ -124,6 +145,11 @@
         if (!form) return;
 
         initLoad();
+
+        // 每30秒轮询刷新留言列表
+        setInterval(function() {
+            loadFromCloud();
+        }, 30000);
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
