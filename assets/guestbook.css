@@ -180,6 +180,11 @@
     line-height: 2;
 }
 
+.form-field input[type="email"] {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+}
+
 .submit-btn {
     align-self: flex-start;
     background: transparent;
@@ -209,6 +214,19 @@
     letter-spacing: 2px;
     margin-bottom: 48px;
     font-family: 'Noto Serif SC', serif;
+}
+
+.poem-line {
+    font-family: 'Noto Serif SC', 'Songti SC', serif;
+    font-size: 0.85rem;
+    color: #c75b67 !important;
+    text-align: center !important;
+    margin: 20px auto 12px !important;
+    letter-spacing: 0.15em;
+    opacity: 0.9;
+    font-weight: 300;
+    line-height: 1.8;
+    display: table !important;
 }
 
 /* 留言列表 */
@@ -264,6 +282,15 @@
     font-size: 0.65rem;
     color: var(--ink-faint);
     opacity: 0.6;
+    letter-spacing: 0.05em;
+}
+
+.message-email {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--stone);
+    opacity: 0.7;
+    margin-bottom: 8px;
     letter-spacing: 0.05em;
 }
 
@@ -336,5 +363,13 @@
     }
     .video-scroll-container video {
         opacity: 0.1;
+    }
+    .poem-line {
+        font-size: 0.75rem !important;
+        color: #c75b67 !important;
+        margin: 16px auto 8px !important;
+        letter-spacing: 0.12em;
+        display: table !important;
+        text-align: center !important;
     }
 }
