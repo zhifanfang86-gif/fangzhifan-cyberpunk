@@ -17,11 +17,22 @@
 <script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
 <script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
 <style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
-.ai-server-section{width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box;padding:80px 24px 60px;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);position:relative}
-.ai-server-inner{width:100%;max-width:1100px;margin:0 auto;position:relative;z-index:1;box-sizing:border-box}
+.ai-server-section{width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box;padding:80px 0 60px;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);position:relative}
+.ai-server-inner{width:100%;max-width:1400px;margin:0 auto;padding:0 clamp(24px,6vw,80px);position:relative;z-index:1;box-sizing:border-box}
 .guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:60px 0!important;background:linear-gradient(180deg,#ffffff 0%,#f8f5f0 50%,#f0ebe0 100%)!important;border-top:1px solid #e8e0d4;border-bottom:1px solid #e8e0d4;box-sizing:border-box!important}
-.guestbook-inner{width:100%!important;max-width:1100px;margin:0 auto!important;padding:0 24px;box-sizing:border-box!important;overflow-x:hidden!important}
-.messages,.message,.message-header,.message-body,.message-author,.message-email,.message-time{text-align:left!important}
+.guestbook-inner{width:calc(100% - 56px)!important;max-width:1400px!important;margin-left:max(56px,calc((100% - 1400px + 56px)/2))!important;margin-right:0!important;padding:0 clamp(24px,6vw,80px)!important;box-sizing:border-box!important;overflow-x:hidden!important}
+.messages{text-align:center!important}
+.message{border-bottom:none!important;padding:32px 24px 36px!important}
+.message::after{content:'';display:block;width:56px;height:1px;margin:32px auto 0;background:linear-gradient(90deg,transparent,#c45c48,transparent);opacity:0.45}
+.message:first-child{border-top:none!important}
+.message-header{flex-direction:column!important;align-items:center!important;gap:6px!important;justify-content:center!important}
+.message-author{color:#a07d2e!important;font-size:1.05rem!important;letter-spacing:0.08em!important}
+.message-author::before,.message-author::after{color:#c9a13b!important;opacity:0.75!important}
+.message-time{opacity:0.75!important}
+.message-email{text-align:center!important;color:#5a8a7e!important}
+.message-body{font-family:'Noto Serif SC',serif!important;color:#b5503c!important;line-height:2.1!important;text-indent:0!important;text-align:center!important;max-width:560px!important;margin:0 auto!important}
+.guestbook-inner .poem-line{display:table!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+.empty{text-align:center!important;border-top:none!important;border-bottom:none!important}
 .guestbook-title,.guestbook-title span{color:#3a3228!important;max-width:100%!important}
 .guestbook-title .guestbook-mark{color:#c4a882!important}
 .guestbook-form{width:100%!important;max-width:100%!important}
@@ -32,14 +43,15 @@
 .submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
 .grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
 @media(max-width:768px){
-.ai-server-section{padding:60px 16px 40px!important}
+.ai-server-section{padding:60px 0 40px!important}
+.ai-server-inner{padding:0 16px!important}
 .hero-title{font-size:2rem!important}.hero-subtitle{font-size:1rem!important}.section-title{font-size:1.5rem!important}
 .card-grid,.services-grid,.portfolio-grid{grid-template-columns:1fr!important;gap:1rem!important;padding:0 1rem!important}
 .nav-links{display:none!important}.mobile-nav{display:flex!important}.container{padding:0 1rem!important}
-.side-nav{display:flex!important;width:48px!important}body{padding-left:0!important;margin-left:0!important}
+.side-nav{display:flex!important;width:44px!important}body{padding-left:0!important;margin-left:0!important}
 #guestbook{margin-left:0!important;width:100%!important}
 .guestbook-section{width:100%!important;max-width:100%!important;overflow-x:hidden!important;padding:40px 0!important;box-sizing:border-box!important;margin-left:0!important}
-.guestbook-inner{width:100%!important;max-width:100%!important;margin:0 auto!important;padding:0 12px!important;box-sizing:border-box!important;overflow-x:hidden!important}
+.guestbook-inner{width:calc(100% - 44px)!important;max-width:none!important;margin-left:44px!important;margin-right:0!important;padding:0 16px!important;box-sizing:border-box!important;overflow-x:hidden!important}
 .guestbook-title{font-size:1.2rem!important;gap:8px!important;margin-bottom:24px!important;width:100%!important;max-width:100%!important}
 .guestbook-mark{width:28px!important;height:28px!important;font-size:0.85rem!important;flex-shrink:0!important}
 .guestbook-line{display:none!important}.guestbook-form{gap:16px!important;margin-bottom:24px!important;width:100%!important}
@@ -53,7 +65,8 @@
 .card-grid,.services-grid,.portfolio-grid{grid-template-columns:repeat(2,1fr)!important}
 }
 #root{width:100%;max-width:100vw;overflow-x:hidden}
-.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:-1;overflow:hidden;background:#0a0a0f}.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:.6}.video-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(10,10,15,.6) 0%,rgba(10,10,15,.3) 50%,rgba(10,10,15,.8) 100%);pointer-events:none}.video-fallback{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0d0d14 100%)}.video-fallback.active{display:block}</style>
+.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:-1;overflow:hidden;background:#0a0a0f}.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:.6}.video-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(10,10,15,.45) 0%,rgba(10,10,15,.2) 50%,rgba(10,10,15,.65) 100%);pointer-events:none}.video-fallback{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0d0d14 100%)}.video-fallback.active{display:block}</style>
+<link rel="preload" as="image" href="/images/real/hero-main.png" fetchpriority="high">
 </head>
 <body>
 <div class="video-scroll-container" id="video-container">
@@ -61,6 +74,7 @@
 <source src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4" type="video/mp4">
 <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
 </video>
+<img src="/images/real/hero-main.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
 <div class="video-overlay"></div>
 <div class="video-fallback" id="video-fallback"></div>
 </div>
@@ -75,7 +89,7 @@
 <p style="font-size:1rem;color:#9a9488;line-height:1.8;max-width:640px;margin:0 auto">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
 </div>
 <div style="width:100%;height:260px;border-radius:8px;overflow:hidden;margin-bottom:30px;position:relative;border:1px solid rgba(196,168,130,0.15)">
-<img src="/images/real/local-ai-hero.jpg" alt="本地AI服务器机房实景" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.8">
+<img src="/images/real/local-ai-hero.jpg" alt="本地AI服务器机房实景" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.8">
 <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.35) 0%,rgba(10,10,15,0.75) 100%);pointer-events:none"></div>
 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;font-family:'JetBrains Mono',monospace;pointer-events:none">
 <div style="font-size:0.9rem;color:#d4a853;letter-spacing:0.35em">LOCAL AI INFRASTRUCTURE</div>
