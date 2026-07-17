@@ -1,19 +1,27 @@
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request, event.env));
+  event.respondWith(handleRequest(event.request));
 });
 
 /* ============================================================
- *  evafang.com Worker — v3.0
- *  功能: 尺牍云端(KV) + 联系表单邮件(Resend) + 图片代理 + 静态资源
- *  长期维护: 配置集中、路由模块化、错误统一
+ *  evafang.com Worker — v3.1
+ *  功能: 尺牍云端(KV) + 联系表单邮件(Resend) + 真实图片代理 + 静态资源
+ *  v3.1 变更:
+ *   - 全部图片换为真实照片(Unsplash 1600px/q80),去除 SVG 占位图
+ *   - 新增 case-*.png 8 个去重图位(配合 bundle V2 数组去重)
+ *   - 尺牍区块宽度 640px → 1100px,与上方 ai-server-inner 对齐
+ *   - 留言显式左对齐
+ *   - 横幅改为真实机房照片 + 文字叠加
+ *   - 修复 env 传递 bug(改用全局绑定);新增 /api/health 兼容路由
+ *   - TO_EMAIL 改为 zhifanfang86@gmail.com(Resend 测试发件限制)
  * ============================================================ */
 
 const CONFIG = {
   FROM_EMAIL:    'onboarding@resend.dev',
-  TO_EMAIL:      'EVAFang@proton.me',
+  TO_EMAIL:      'zhifanfang86@gmail.com',
   KV_KEY:        'messages',
   MAX_MESSAGES:  100,
   ASSETS_ORIGIN: 'https://raw.githubusercontent.com/zhifanfang86-gif/fangzhifan-cyberpunk/main/assets/',
+  VERSION:       '3.1'
 };
 
 function jsonResponse(data, status = 200, extraHeaders = {}) {
@@ -34,7 +42,7 @@ function htmlResponse(html, extraHeaders = {}) {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'public, max-age=60',
-      'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload',
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
       ...extraHeaders
@@ -55,8 +63,16 @@ function sanitizeInput(text, maxLen) {
   return text.trim().substring(0, maxLen);
 }
 
-async function sendContactEmail(env, { name, email, message, source = 'evafang.com' }) {
-  const apiKey = env.RESEND_API_KEY;
+function getResendKey() {
+  return (typeof RESEND_API_KEY !== 'undefined') ? RESEND_API_KEY : null;
+}
+
+function getKV() {
+  return (typeof GUESTBOOK_KV !== 'undefined') ? GUESTBOOK_KV : null;
+}
+
+async function sendContactEmail({ name, email, message, source = 'evafang.com' }) {
+  const apiKey = getResendKey();
   if (!apiKey) {
     return { success: false, error: 'RESEND_API_KEY not configured' };
   }
@@ -122,59 +138,51 @@ async function addMessage(kv, entry) {
   return list;
 }
 
-const SVG_IMAGES = {
-  'ai-robot': `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#1a1a2e"/><circle cx="200" cy="120" r="50" fill="none" stroke="#c4a882" stroke-width="2"/><circle cx="185" cy="110" r="5" fill="#c4a882"/><circle cx="215" cy="110" r="5" fill="#c4a882"/><path d="M170 150 Q200 170 230 150" stroke="#c4a882" stroke-width="2" fill="none"/><text x="200" y="220" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="14">AI 智能机器人</text></svg>`,
-  'ai-server': `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#1a1a2e"/><rect x="120" y="80" width="160" height="140" rx="5" fill="none" stroke="#c4a882" stroke-width="2"/><line x1="120" y1="110" x2="280" y2="110" stroke="#c4a882" stroke-width="1"/><line x1="120" y1="140" x2="280" y2="140" stroke="#c4a882" stroke-width="1"/><line x1="120" y1="170" x2="280" y2="170" stroke="#c4a882" stroke-width="1"/><circle cx="140" cy="125" r="3" fill="#c4a882"/><circle cx="140" cy="155" r="3" fill="#c4a882"/><circle cx="140" cy="185" r="3" fill="#c4a882"/><text x="200" y="250" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="14">AI 服务器集群</text></svg>`,
-  'local-ai-hero': `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="260" viewBox="0 0 800 260"><rect width="800" height="260" fill="#1a1a2e"/><rect x="250" y="60" width="300" height="140" rx="8" fill="none" stroke="#c4a882" stroke-width="2"/><line x1="250" y1="100" x2="550" y2="100" stroke="#c4a882" stroke-width="1"/><line x1="250" y1="130" x2="550" y2="130" stroke="#c4a882" stroke-width="1"/><line x1="250" y1="160" x2="550" y2="160" stroke="#c4a882" stroke-width="1"/><circle cx="280" cy="80" r="4" fill="#c4a882"/><text x="400" y="220" text-anchor="middle" fill="#c4a882" font-family="serif" font-size="16">本地 AI 全栈基础设施</text></svg>`
-};
-
 const IMAGE_MAP = {
-  '/images/real/ai-robot.png': '__embedded:svg:ai-robot',
-  '/images/real/server-room.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&q=80',
-  '/images/real/datacenter-lights.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80',
-  '/images/real/coding.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&q=80',
-  '/images/real/hero-chip.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80',
-  '/images/real/fiber.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400&q=80',
-  '/images/real/security-lock.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&q=80',
-  '/images/real/cyber-shield.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80',
-  '/images/real/keyboard.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&q=80',
-  '/images/real/datacenter-corridor.png': 'https://images.weserv.nl/?url=images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80',
-  '/images/real/ai-server.png': '__embedded:svg:ai-server',
+  '/images/real/ai-robot.png':           'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80',
+  '/images/real/server-room.png':        'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=1600&q=80',
+  '/images/real/datacenter-lights.png':  'https://images.unsplash.com/photo-1520869562399-e772f042f422?w=1600&q=80',
+  '/images/real/coding.png':             'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1600&q=80',
+  '/images/real/hero-chip.png':          'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80',
+  '/images/real/fiber.png':              'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1600&q=80',
+  '/images/real/security-lock.png':      'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1600&q=80',
+  '/images/real/cyber-shield.png':       'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1600&q=80',
+  '/images/real/keyboard.png':           'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=1600&q=80',
+  '/images/real/datacenter-corridor.png':'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=1600&q=80',
+  '/images/real/ai-server.png':          'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1600&q=80',
+  '/images/real/case-code-delivery.png': 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=1600&q=80',
+  '/images/real/case-ai-deploy.png':     'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1600&q=80',
+  '/images/real/case-network.png':       'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=80',
+  '/images/real/case-ops.png':           'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=1600&q=80',
+  '/images/real/case-edge.png':          'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80',
+  '/images/real/case-security.png':      'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=80',
+  '/images/real/case-zero-trust.png':    'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1600&q=80',
+  '/images/real/case-pipeline.png':      'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1600&q=80',
+  '/images/real/local-ai-hero':          'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=80',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
-  '/images/globe-nodes.mp4': 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4',
-  '/images/real/local-ai-hero': '__embedded:svg:local-ai-hero'
+  '/images/globe-nodes.mp4': 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4'
 };
 
 async function proxyImage(path) {
-  const redirectUrl = IMAGE_MAP[path];
-  if (!redirectUrl) return null;
-
-  if (redirectUrl.startsWith('__embedded:svg:')) {
-    const svgKey = redirectUrl.replace('__embedded:svg:', '');
-    const svgData = SVG_IMAGES[svgKey];
-    if (svgData) {
-      return new Response(svgData, {
-        status: 200,
-        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age:86400' }
-      });
-    }
-  }
+  const targetUrl = IMAGE_MAP[path];
+  if (!targetUrl) return null;
 
   try {
-    const imgResp = await fetch(redirectUrl, {
+    const imgResp = await fetch(targetUrl, {
       headers: {
-        'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
+        'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        'User-Agent': 'Cloudflare-Worker'
       }
     });
     if (!imgResp.ok) {
       return new Response('Upstream error: ' + imgResp.status, { status: 502 });
     }
-    const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/png');
+    const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg');
     return new Response(imgResp.body, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=300',
+        'Cache-Control': 'public, max-age=86400',
         'Access-Control-Allow-Origin': '*'
       }
     });
@@ -227,7 +235,7 @@ function renderIndexHtml() {
 .ai-server-section{width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box;padding:80px 24px 60px;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);position:relative}
 .ai-server-inner{width:100%;max-width:1100px;margin:0 auto;position:relative;z-index:1;box-sizing:border-box}
 .guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:60px 0!important;background:linear-gradient(180deg,#ffffff 0%,#f8f5f0 50%,#f0ebe0 100%)!important;border-top:1px solid #e8e0d4;border-bottom:1px solid #e8e0d4;box-sizing:border-box!important}
-.guestbook-inner{width:100%!important;max-width:640px;margin:0 auto!important;padding:0 24px;box-sizing:border-box!important;overflow-x:hidden!important}
+.guestbook-inner{width:100%!important;max-width:1100px!important;margin:0 auto!important;padding:0 24px!important;box-sizing:border-box!important;overflow-x:hidden!important}
 .guestbook-title,.guestbook-title span{color:#3a3228!important;max-width:100%!important}
 .guestbook-title .guestbook-mark{color:#c4a882!important}
 .guestbook-form{width:100%!important;max-width:100%!important}
@@ -236,6 +244,7 @@ function renderIndexHtml() {
 .guestbook-form input,.guestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
 .guestbook-form input::placeholder,.guestbook-form textarea::placeholder{color:#b0a898!important}
 .submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
+.messages,.message,.message-header,.message-body,.message-author,.message-email{text-align:left!important}
 .grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
 @media(max-width:768px){
 .ai-server-section{padding:60px 16px 40px!important}
@@ -281,8 +290,12 @@ function renderIndexHtml() {
 <p style="font-size:1rem;color:#9a9488;line-height:1.8;max-width:640px;margin:0 auto">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
 </div>
 <div style="width:100%;height:260px;border-radius:8px;overflow:hidden;margin-bottom:30px;position:relative;border:1px solid rgba(196,168,130,0.15)">
-<img src="/images/real/local-ai-hero" style="width:100%;height:100%;object-fit:cover;opacity:0.7" alt="本地AI基础设施">
-<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.3) 0%,rgba(10,10,15,0.8) 100%)"></div>
+<img src="/images/real/local-ai-hero" style="width:100%;height:100%;object-fit:cover;opacity:0.85" alt="本地AI基础设施">
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.35) 0%,rgba(10,10,15,0.75) 100%)"></div>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none">
+<div style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;letter-spacing:0.35em;color:#d4a853;text-transform:uppercase">Local AI Infrastructure</div>
+<div style="font-family:'Noto Serif SC',serif;font-size:0.85rem;color:#e8d5b5;letter-spacing:0.2em;opacity:0.9">本地部署 · 数据闭环 · 自主可控</div>
+</div>
 </div>
 <div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">核心能力</div>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
@@ -431,7 +444,7 @@ window.addEventListener('load',function(){positionAISection();fixAllWidths();});
 </html>`;
 }
 
-async function handleRequest(request, env) {
+async function handleRequest(request) {
   const url = new URL(request.url);
   const path = url.pathname;
   const hostname = url.hostname;
@@ -439,14 +452,14 @@ async function handleRequest(request, env) {
   if (hostname === 'www.evafang.com') {
     return new Response(null, {
       status: 301,
-      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age:86400' }
+      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age=86400' }
     });
   }
 
   if (url.protocol === 'http:') {
     return new Response(null, {
       status: 301,
-      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age:31536000; includeSubDomains; preload' }
+      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload' }
     });
   }
 
@@ -471,8 +484,10 @@ async function handleRequest(request, env) {
   }
 
   if (path === '/messages') {
+    const kv = getKV();
+    if (!kv) return jsonResponse({ success: false, error: 'KV not bound' }, 500);
     if (request.method === 'GET') {
-      const list = await getMessages(env.GUESTBOOK_KV);
+      const list = await getMessages(kv);
       return jsonResponse({ success: true, data: list });
     }
     if (request.method === 'POST') {
@@ -491,7 +506,7 @@ async function handleRequest(request, env) {
           time: new Date().toLocaleString('zh-CN'),
           timestamp: Date.now()
         };
-        const list = await addMessage(env.GUESTBOOK_KV, entry);
+        const list = await addMessage(kv, entry);
         return jsonResponse({ success: true, data: list });
       } catch (e) {
         return jsonResponse({ success: false, error: e.message }, 500);
@@ -513,7 +528,7 @@ async function handleRequest(request, env) {
         return jsonResponse({ success: false, error: '称呼和留言为必填项' }, 400);
       }
 
-      const result = await sendContactEmail(env, { name, email, message });
+      const result = await sendContactEmail({ name, email, message });
       if (result.success) {
         return jsonResponse({ success: true, message: '邮件已发送', emailId: result.id });
       } else {
@@ -524,8 +539,8 @@ async function handleRequest(request, env) {
     }
   }
 
-  if (path === '/health') {
-    return jsonResponse({ success: true, status: 'online', node: 'FZ-001', version: '3.0' });
+  if (path === '/health' || path === '/api/health') {
+    return jsonResponse({ success: true, status: 'online', node: 'FZ-001', version: CONFIG.VERSION, ts: Date.now() });
   }
 
   if (path === '/' || path === '/index.html') {
