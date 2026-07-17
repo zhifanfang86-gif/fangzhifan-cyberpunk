@@ -32,6 +32,12 @@ const IMAGE_MAP = {
   '/images/real/case-pipeline.png':      'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1600&q=80',
   '/images/real/cyber-lock.png':         'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1600&q=80',
   '/images/real/local-ai-hero.jpg':      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=80',
+  '/images/real/hero-main.png':          'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920&q=80',
+  '/images/real/knowledge-library.png':  'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1600&q=80',
+  '/images/real/credential-meeting.png': 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1600&q=80',
+  '/images/real/philosophy-dark.png':    'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1600&q=80',
+  '/images/real/recruit-team.png':       'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&q=80',
+  '/images/real/contact-letter.png':     'https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1600&q=80',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
   '/images/globe-nodes.mp4': 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4'
 };
@@ -216,7 +222,14 @@ async function proxyStatic(url) {
           ['img:"/images/real/cyber-shield.png",title:"企业安全防御体系"','img:"/images/real/case-security.png",title:"企业安全防御体系"'],
           ['img:"/images/real/security-lock.png",title:"零信任架构落地"','img:"/images/real/case-zero-trust.png",title:"零信任架构落地"'],
           ['img:"/images/real/coding.png",title:"自动化交付流水线"','img:"/images/real/case-pipeline.png",title:"自动化交付流水线"'],
-          ['https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80','/images/real/cyber-lock.png']
+          ['https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80','/images/real/cyber-lock.png'],
+          ['background:"linear-gradient(to bottom, rgba(17,17,17,0.75) 0%, rgba(17,17,17,0.5) 50%, rgba(17,17,17,0.85) 100%)"','background:"linear-gradient(to bottom, rgba(17,17,17,0.45) 0%, rgba(17,17,17,0.3) 50%, rgba(17,17,17,0.65) 100%)"'],
+          ['background:"linear-gradient(to bottom, rgba(17,17,17,0.45) 0%, rgba(17,17,17,0.3) 50%, rgba(17,17,17,0.65) 100%)"','background:"linear-gradient(to bottom, rgba(17,17,17,0.45) 0%, rgba(17,17,17,0.3) 50%, rgba(17,17,17,0.65) 100%),url(/images/real/hero-main.png) center/cover no-repeat"'],
+          ['x.jsx("p",{"code-path":"src/sections/KnowledgeSection.tsx:73:11"','x.jsx("img",{src:"/images/real/knowledge-library.png",loading:"lazy",style:{width:"100%",height:220,objectFit:"cover",borderRadius:8,opacity:.85,marginBottom:48}}),x.jsx("p",{"code-path":"src/sections/KnowledgeSection.tsx:73:11"'],
+          ['x.jsx("p",{"code-path":"src/sections/CredentialSection.tsx:41:11"','x.jsx("img",{src:"/images/real/credential-meeting.png",loading:"lazy",style:{width:"100%",height:200,objectFit:"cover",borderRadius:8,opacity:.85,marginBottom:48}}),x.jsx("p",{"code-path":"src/sections/CredentialSection.tsx:41:11"'],
+          ['x.jsxs("div",{"code-path":"src/sections/PhilosophySection.tsx:43:9"','x.jsx("img",{src:"/images/real/philosophy-dark.png",loading:"lazy",style:{width:"100%",height:240,objectFit:"cover",borderRadius:8,opacity:.9,marginBottom:48}}),x.jsxs("div",{"code-path":"src/sections/PhilosophySection.tsx:43:9"'],
+          ['x.jsxs("div",{"code-path":"src/sections/RecruitSection.tsx:40:9"','x.jsx("img",{src:"/images/real/recruit-team.png",loading:"lazy",style:{width:"100%",height:240,objectFit:"cover",borderRadius:8,opacity:.85,marginBottom:48}}),x.jsxs("div",{"code-path":"src/sections/RecruitSection.tsx:40:9"'],
+          ['x.jsx("p",{"code-path":"src/sections/ContactSection.tsx:44:13"','x.jsx("img",{src:"/images/real/contact-letter.png",loading:"lazy",style:{width:"100%",height:200,objectFit:"cover",borderRadius:8,opacity:.85,marginBottom:32}}),x.jsx("p",{"code-path":"src/sections/ContactSection.tsx:44:13"']
         ];
         for (var k = 0; k < rw.length; k++) { text = text.split(rw[k][0]).join(rw[k][1]); }
       }
@@ -306,7 +319,7 @@ async function handleRequest(request) {
   }
 
   if (url.pathname === '/api/health' || url.pathname === '/health') {
-    return jsonResponse({success: true, status: 'online', version: '3.1', ts: Date.now()});
+    return jsonResponse({success: true, status: 'online', version: '3.3', ts: Date.now()});
   }
 
   return proxyStatic(url);
