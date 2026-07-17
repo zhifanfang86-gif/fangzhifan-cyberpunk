@@ -2,141 +2,13 @@ addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
 
-/* ============================================================
- *  evafang.com Worker — v3.1
- *  功能: 尺牍云端(KV) + 联系表单邮件(Resend) + 真实图片代理 + 静态资源
- *  v3.1 变更:
- *   - 全部图片换为真实照片(Unsplash 1600px/q80),去除 SVG 占位图
- *   - 新增 case-*.png 8 个去重图位(配合 bundle V2 数组去重)
- *   - 尺牍区块宽度 640px → 1100px,与上方 ai-server-inner 对齐
- *   - 留言显式左对齐
- *   - 横幅改为真实机房照片 + 文字叠加
- *   - 修复 env 传递 bug(改用全局绑定);新增 /api/health 兼容路由
- *   - TO_EMAIL 改为 zhifanfang86@gmail.com(Resend 测试发件限制)
- * ============================================================ */
-
 const CONFIG = {
   FROM_EMAIL:    'onboarding@resend.dev',
   TO_EMAIL:      'zhifanfang86@gmail.com',
   KV_KEY:        'messages',
   MAX_MESSAGES:  100,
-  ASSETS_ORIGIN: 'https://raw.githubusercontent.com/zhifanfang86-gif/fangzhifan-cyberpunk/main/assets/',
-  VERSION:       '3.1'
+  ASSETS_ORIGIN: 'https://raw.githubusercontent.com/zhifanfang86-gif/fangzhifan-cyberpunk/main/assets/'
 };
-
-function jsonResponse(data, status = 200, extraHeaders = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      ...extraHeaders
-    }
-  });
-}
-
-function htmlResponse(html, extraHeaders = {}) {
-  return new Response(html, {
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=60',
-      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-      'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      ...extraHeaders
-    }
-  });
-}
-
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function sanitizeInput(text, maxLen) {
-  if (!text || typeof text !== 'string') return '';
-  return text.trim().substring(0, maxLen);
-}
-
-function getResendKey() {
-  return (typeof RESEND_API_KEY !== 'undefined') ? RESEND_API_KEY : null;
-}
-
-function getKV() {
-  return (typeof GUESTBOOK_KV !== 'undefined') ? GUESTBOOK_KV : null;
-}
-
-async function sendContactEmail({ name, email, message, source = 'evafang.com' }) {
-  const apiKey = getResendKey();
-  if (!apiKey) {
-    return { success: false, error: 'RESEND_API_KEY not configured' };
-  }
-
-  const subject = `[${source}] 新留言来自 ${name || '匿名'}`;
-  const bodyHtml = `
-    <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
-      <h2 style="color:#c4a882;border-bottom:2px solid #e8e0d4;padding-bottom:12px;">📬 新联系请求</h2>
-      <table style="width:100%;border-collapse:collapse;margin-top:16px;">
-        <tr><td style="padding:8px 0;color:#666;width:80px;">称呼</td><td style="padding:8px 0;font-weight:600;">${escapeHtml(name || '未填写')}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;">邮箱</td><td style="padding:8px 0;">${escapeHtml(email || '未填写')}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;vertical-align:top;">留言</td><td style="padding:8px 0;white-space:pre-wrap;">${escapeHtml(message || '空')}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;">时间</td><td style="padding:8px 0;color:#999;">${new Date().toLocaleString('zh-CN')}</td></tr>
-        <tr><td style="padding:8px 0;color:#666;">来源</td><td style="padding:8px 0;color:#999;">${source}</td></tr>
-      </table>
-      <p style="margin-top:24px;color:#999;font-size:0.85rem;">此邮件由 evafang.com 自动发送</p>
-    </div>
-  `;
-
-  try {
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: CONFIG.FROM_EMAIL,
-        to: CONFIG.TO_EMAIL,
-        subject: subject,
-        html: bodyHtml
-      })
-    });
-
-    if (!resp.ok) {
-      const err = await resp.text();
-      return { success: false, error: `Resend HTTP ${resp.status}: ${err}` };
-    }
-
-    const result = await resp.json();
-    return { success: true, id: result.id };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-}
-
-async function getMessages(kv) {
-  try {
-    const raw = await kv.get(CONFIG.KV_KEY);
-    if (!raw) return [];
-    const list = JSON.parse(raw);
-    return Array.isArray(list) ? list : [];
-  } catch (e) {
-    return [];
-  }
-}
-
-async function addMessage(kv, entry) {
-  const list = await getMessages(kv);
-  list.unshift(entry);
-  if (list.length > CONFIG.MAX_MESSAGES) list.length = CONFIG.MAX_MESSAGES;
-  await kv.put(CONFIG.KV_KEY, JSON.stringify(list));
-  return list;
-}
 
 const IMAGE_MAP = {
   '/images/real/ai-robot.png':           'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1600&q=80',
@@ -158,26 +30,124 @@ const IMAGE_MAP = {
   '/images/real/case-security.png':      'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=80',
   '/images/real/case-zero-trust.png':    'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1600&q=80',
   '/images/real/case-pipeline.png':      'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1600&q=80',
-  '/images/real/local-ai-hero':          'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=80',
+  '/images/real/cyber-lock.png':         'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1600&q=80',
+  '/images/real/local-ai-hero.jpg':      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1600&q=80',
   '/images/data-flow.mp4': 'https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4',
   '/images/globe-nodes.mp4': 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4'
 };
 
-async function proxyImage(path) {
-  const targetUrl = IMAGE_MAP[path];
-  if (!targetUrl) return null;
+function getContentType(path) {
+  if (path.endsWith('.html') || path === '/') return 'text/html; charset=utf-8';
+  if (path.endsWith('.js')) return 'application/javascript; charset=utf-8';
+  if (path.endsWith('.css')) return 'text/css; charset=utf-8';
+  if (path.endsWith('.svg')) return 'image/svg+xml';
+  if (path.endsWith('.png')) return 'image/png';
+  if (path.endsWith('.jpg') || path.endsWith('.jpeg')) return 'image/jpeg';
+  if (path.endsWith('.gif')) return 'image/gif';
+  if (path.endsWith('.mp4')) return 'video/mp4';
+  if (path.endsWith('.webm')) return 'video/webm';
+  // 已知图片路径，无扩展名也能识别
+  if (path.includes('local-ai-hero') || path.includes('ai-robot') || path.includes('server-room') || path.includes('datacenter') || path.includes('coding') || path.includes('hero-chip') || path.includes('fiber') || path.includes('security') || path.includes('cyber') || path.includes('keyboard') || path.includes('ai-server')) return 'image/jpeg';
+  return 'application/octet-stream';
+}
+
+function jsonResponse(data, status) {
+  status = status || 200;
+  return new Response(JSON.stringify(data), {
+    status: status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
+}
+
+function escapeHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+}
+
+function sanitize(t, maxLen) {
+  if (!t || typeof t !== 'string') return '';
+  return t.trim().substring(0, maxLen);
+}
+
+async function sendEmail(data) {
+  var name = data.name, email = data.email, message = data.message;
+  var key = typeof RESEND_API_KEY !== 'undefined' ? RESEND_API_KEY : null;
+  if (!key) return {ok: false, err: 'RESEND_API_KEY missing'};
+
+  var htmlBody = '<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e8e0d4;">' +
+    '<h2 style="color:#c45c48;border-bottom:2px solid #e8e0d4;padding-bottom:12px;">📬 新联系请求</h2>' +
+    '<table style="width:100%;border-collapse:collapse;margin-top:16px;">' +
+    '<tr><td style="padding:8px 0;color:#666;width:80px;">称呼</td><td style="padding:8px 0;font-weight:600;">' + escapeHtml(name||'未填写') + '</td></tr>' +
+    '<tr><td style="padding:8px 0;color:#666;">邮箱</td><td style="padding:8px 0;">' + escapeHtml(email||'未填写') + '</td></tr>' +
+    '<tr><td style="padding:8px 0;color:#666;vertical-align:top;">留言</td><td style="padding:8px 0;white-space:pre-wrap;">' + escapeHtml(message||'空') + '</td></tr>' +
+    '<tr><td style="padding:8px 0;color:#666;">时间</td><td style="padding:8px 0;color:#999;">' + new Date().toLocaleString('zh-CN') + '</td></tr>' +
+    '</table>' +
+    '<p style="margin-top:24px;color:#999;font-size:0.85rem;">此邮件由 evafang.com 自动发送</p>' +
+    '</div>';
 
   try {
-    const imgResp = await fetch(targetUrl, {
+    var r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: CONFIG.FROM_EMAIL,
+        to: CONFIG.TO_EMAIL,
+        subject: '[evafang.com] 来自 ' + (name || '访客') + ' 的联系请求',
+        html: htmlBody
+      })
+    });
+    var respData = await r.json().catch(function() { return {}; });
+    if (!r.ok) return {ok: false, err: respData.message || 'Resend HTTP ' + r.status};
+    return {ok: true, id: respData.id};
+  } catch (e) {
+    return {ok: false, err: e.message};
+  }
+}
+
+async function getMessages() {
+  try {
+    var raw = await GUESTBOOK_KV.get(CONFIG.KV_KEY);
+    if (!raw) return [];
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function addMessage(name, email, message) {
+  var list = await getMessages();
+  var entry = {
+    name: sanitize(name, 50) || '匿名',
+    email: sanitize(email, 100) || '',
+    message: sanitize(message, 500) || '',
+    time: new Date().toLocaleString('zh-CN', {hour12: false}),
+    timestamp: Date.now()
+  };
+  list.unshift(entry);
+  var trimmed = list.slice(0, CONFIG.MAX_MESSAGES);
+  await GUESTBOOK_KV.put(CONFIG.KV_KEY, JSON.stringify(trimmed));
+  return trimmed;
+}
+
+async function proxyImage(path) {
+  var redirectUrl = IMAGE_MAP[path];
+  if (!redirectUrl) return null;
+  
+  try {
+    var imgResp = await fetch(redirectUrl, {
       headers: {
-        'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-        'User-Agent': 'Cloudflare-Worker'
+        'Accept': path.endsWith('.mp4') ? 'video/mp4' : 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
       }
     });
     if (!imgResp.ok) {
       return new Response('Upstream error: ' + imgResp.status, { status: 502 });
     }
-    const contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg');
+    var contentType = imgResp.headers.get('Content-Type') || (path.endsWith('.mp4') ? 'video/mp4' : 'image/png');
     return new Response(imgResp.body, {
       status: 200,
       headers: {
@@ -191,280 +161,96 @@ async function proxyImage(path) {
   }
 }
 
-async function proxyAsset(assetPath) {
-  const assetUrl = CONFIG.ASSETS_ORIGIN + assetPath;
+async function proxyStatic(url) {
+  if (IMAGE_MAP[url.pathname]) {
+    var imgResp = await proxyImage(url.pathname);
+    if (imgResp) return imgResp;
+  }
+  
+  // 对根路径优先从 KV 读取 HTML
+  if (url.pathname === '/') {
+    try {
+      var html = await GUESTBOOK_KV.get('index_html');
+      if (html) {
+        return new Response(html, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=0, no-cache',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      }
+    } catch (e) {
+      // KV 读取失败，继续回退到 fetch
+    }
+  }
+  
+  var target;
+  if (url.pathname === '/') {
+    target = 'https://raw.githubusercontent.com/zhifanfang86-gif/fangzhifan-cyberpunk/main/index.html?nocache=' + Date.now();
+  } else if (url.pathname.startsWith('/assets/')) {
+    target = CONFIG.ASSETS_ORIGIN + url.pathname.slice(8);
+  } else {
+    target = CONFIG.ASSETS_ORIGIN + url.pathname.slice(1);
+  }
+
   try {
-    const raw = await fetch(assetUrl);
-    if (!raw.ok) return new Response('Asset not found: ' + assetPath, { status: 404 });
-    const body = await raw.text();
-    const contentType = assetPath.endsWith('.css') ? 'text/css' :
-                        assetPath.endsWith('.js')  ? 'application/javascript' :
-                        raw.headers.get('Content-Type') || 'text/plain';
+    var r = await fetch(target, {
+      headers: { 'User-Agent': 'Cloudflare-Worker' },
+      cf: { cacheTtl: 0 }
+    });
+    if (!r.ok) return new Response('Not found: ' + target, {status: 404});
+
+    var contentType = getContentType(url.pathname);
+
+    if (url.pathname === '/' || url.pathname.endsWith('.js')) {
+      var text = await r.text();
+      if (url.pathname.indexOf('index-4r6Lbbs8.js') !== -1) {
+        var rw = [
+          ['img:"/images/real/keyboard.png",title:"企业级代码交付"','img:"/images/real/case-code-delivery.png",title:"企业级代码交付"'],
+          ['img:"/images/real/hero-chip.png",title:"AI大模型私有化部署"','img:"/images/real/case-ai-deploy.png",title:"AI大模型私有化部署"'],
+          ['img:"/images/real/fiber.png",title:"全球线路加速网络"','img:"/images/real/case-network.png",title:"全球线路加速网络"'],
+          ['img:"/images/real/server-room.png",title:"深夜数据中心巡检"','img:"/images/real/case-ops.png",title:"深夜数据中心巡检"'],
+          ['img:"/images/real/datacenter-lights.png",title:"城市大脑边缘节点"','img:"/images/real/case-edge.png",title:"城市大脑边缘节点"'],
+          ['img:"/images/real/cyber-shield.png",title:"企业安全防御体系"','img:"/images/real/case-security.png",title:"企业安全防御体系"'],
+          ['img:"/images/real/security-lock.png",title:"零信任架构落地"','img:"/images/real/case-zero-trust.png",title:"零信任架构落地"'],
+          ['img:"/images/real/coding.png",title:"自动化交付流水线"','img:"/images/real/case-pipeline.png",title:"自动化交付流水线"'],
+          ['https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80','/images/real/cyber-lock.png']
+        ];
+        for (var k = 0; k < rw.length; k++) { text = text.split(rw[k][0]).join(rw[k][1]); }
+      }
+      text = text.replace(new RegExp('src:"/images/data-flow\\.mp4"', 'g'), 'src:""');
+      return new Response(text, {
+        status: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=0, no-cache',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    var body = await r.arrayBuffer();
     return new Response(body, {
+      status: 200,
       headers: {
-        'Content-Type': contentType + '; charset=utf-8',
-        'Cache-Control': 'public, max-age=300',
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=0, no-cache',
         'Access-Control-Allow-Origin': '*'
       }
     });
   } catch (e) {
-    return new Response('Asset fetch failed: ' + e.message, { status: 502 });
+    return new Response('Proxy error: ' + e.message, {status: 502});
   }
-}
-
-function renderIndexHtml() {
-  return `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>fang zhi fan</title>
-<meta name="description" content="fang zhi fan — AI Build, Full Stack, Cyber Security"/>
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
-<link rel="canonical" href="https://evafang.com/"/>
-<link rel="preconnect" href="https://fonts.loli.net"/>
-<link rel="preconnect" href="https://gstatic.loli.net" crossorigin=""/>
-<link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"/>
-<link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-<script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
-<link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
-<link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
-<script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
-<style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
-.ai-server-section{width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box;padding:80px 24px 60px;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);position:relative}
-.ai-server-inner{width:100%;max-width:1100px;margin:0 auto;position:relative;z-index:1;box-sizing:border-box}
-.guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:60px 0!important;background:linear-gradient(180deg,#ffffff 0%,#f8f5f0 50%,#f0ebe0 100%)!important;border-top:1px solid #e8e0d4;border-bottom:1px solid #e8e0d4;box-sizing:border-box!important}
-.guestbook-inner{width:100%!important;max-width:1100px!important;margin:0 auto!important;padding:0 24px!important;box-sizing:border-box!important;overflow-x:hidden!important}
-.guestbook-title,.guestbook-title span{color:#3a3228!important;max-width:100%!important}
-.guestbook-title .guestbook-mark{color:#c4a882!important}
-.guestbook-form{width:100%!important;max-width:100%!important}
-.form-field{width:100%!important;max-width:100%!important}
-.guestbook-form label{color:#5a4e3e!important}
-.guestbook-form input,.guestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
-.guestbook-form input::placeholder,.guestbook-form textarea::placeholder{color:#b0a898!important}
-.submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
-.messages,.message,.message-header,.message-body,.message-author,.message-email{text-align:left!important}
-.grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
-@media(max-width:768px){
-.ai-server-section{padding:60px 16px 40px!important}
-.hero-title{font-size:2rem!important}.hero-subtitle{font-size:1rem!important}.section-title{font-size:1.5rem!important}
-.card-grid,.services-grid,.portfolio-grid{grid-template-columns:1fr!important;gap:1rem!important;padding:0 1rem!important}
-.nav-links{display:none!important}.mobile-nav{display:flex!important}.container{padding:0 1rem!important}
-.side-nav{display:flex!important;width:48px!important}body{padding-left:0!important;margin-left:0!important}
-#guestbook{margin-left:0!important;width:100%!important}
-.guestbook-section{width:100%!important;max-width:100%!important;overflow-x:hidden!important;padding:40px 0!important;box-sizing:border-box!important;margin-left:0!important}
-.guestbook-inner{width:100%!important;max-width:100%!important;margin:0 auto!important;padding:0 12px!important;box-sizing:border-box!important;overflow-x:hidden!important}
-.guestbook-title{font-size:1.2rem!important;gap:8px!important;margin-bottom:24px!important;width:100%!important;max-width:100%!important}
-.guestbook-mark{width:28px!important;height:28px!important;font-size:0.85rem!important;flex-shrink:0!important}
-.guestbook-line{display:none!important}.guestbook-form{gap:16px!important;margin-bottom:24px!important;width:100%!important}
-.form-field{width:100%!important;max-width:100%!important}
-.form-field input,.form-field textarea{font-size:16px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding:12px 16px!important}
-.submit-btn{width:100%!important;text-align:center;box-sizing:border-box!important}
-.video-scroll-container video{opacity:0.08!important}
-.poem-line{font-size:0.75rem!important;color:#c75b67!important;margin:16px auto 8px!important;letter-spacing:0.12em;display:table!important;text-align:center!important}
-}
-@media(min-width:769px) and (max-width:1024px){
-.card-grid,.services-grid,.portfolio-grid{grid-template-columns:repeat(2,1fr)!important}
-}
-#root{width:100%;max-width:100vw;overflow-x:hidden}
-.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:-1;overflow:hidden;background:#0a0a0f}.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:.6}.video-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(10,10,15,.6) 0%,rgba(10,10,15,.3) 50%,rgba(10,10,15,.8) 100%);pointer-events:none}.video-fallback{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0d0d14 100%)}.video-fallback.active{display:block}</style>
-</head>
-<body>
-<div class="video-scroll-container" id="video-container">
-<video id="scroll-video" muted playsinline preload="auto" loop autoplay>
-<source src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4" type="video/mp4">
-<source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
-</video>
-<div class="video-overlay"></div>
-<div class="video-fallback" id="video-fallback"></div>
-</div>
-
-<div id="root"></div>
-
-<section class="ai-server-section" id="ai-server">
-<div class="ai-server-inner">
-<div style="text-align:center;margin-bottom:30px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#c4a882;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:16px;opacity:0.8">独立构建 · 长期验证</div>
-<h2 style="font-family:'Noto Serif SC',serif;font-size:2.2rem;font-weight:600;color:#e8d5b5;margin:0 0 16px;letter-spacing:0.05em">本地 AI 全栈微服务器系统</h2>
-<p style="font-size:1rem;color:#9a9488;line-height:1.8;max-width:640px;margin:0 auto">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
-</div>
-<div style="width:100%;height:260px;border-radius:8px;overflow:hidden;margin-bottom:30px;position:relative;border:1px solid rgba(196,168,130,0.15)">
-<img src="/images/real/local-ai-hero" style="width:100%;height:100%;object-fit:cover;opacity:0.85" alt="本地AI基础设施">
-<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.35) 0%,rgba(10,10,15,0.75) 100%)"></div>
-<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none">
-<div style="font-family:'JetBrains Mono',monospace;font-size:0.9rem;letter-spacing:0.35em;color:#d4a853;text-transform:uppercase">Local AI Infrastructure</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:0.85rem;color:#e8d5b5;letter-spacing:0.2em;opacity:0.9">本地部署 · 数据闭环 · 自主可控</div>
-</div>
-</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">核心能力</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px">
-<h3 style="font-family:'Noto Serif SC',serif;font-size:1rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">稳定部署</h3>
-<p style="font-size:0.85rem;color:#9a9488;line-height:1.7;margin:0">本地大模型稳定运行，支持多场景自动化工作流</p>
-</div>
-<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px">
-<h3 style="font-family:'Noto Serif SC',serif;font-size:1rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">安全远程</h3>
-<p style="font-size:0.85rem;color:#9a9488;line-height:1.7;margin:0">完整远程安全访问、自动监控修复、自启动能力，装好即用</p>
-</div>
-<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px">
-<h3 style="font-family:'Noto Serif SC',serif;font-size:1rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">纯本地闭环</h3>
-<p style="font-size:0.85rem;color:#9a9488;line-height:1.7;margin:0">所有数据与服务均在本地运行，无任何云端依赖</p>
-</div>
-</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">使用场景</div>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px 24px;max-width:560px;margin:0 auto 24px">
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>节省5位数开支项目</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>个人构建（医疗、金融、信息隐私）</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>数据不出域</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>个人逐步开放</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>主要面向企业以及公司</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>入门配置推荐（5万起步）</span></div>
-</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">商业价值</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-<div style="text-align:center;padding:16px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:rgba(196,168,130,0.4);margin-bottom:8px;font-weight:300">01</div>
-<h4 style="font-family:'Noto Serif SC',serif;font-size:0.95rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">成本优势显著</h4>
-<p style="font-size:0.82rem;color:#9a9488;line-height:1.7;margin:0">仅需一台高性能主机，整体拥有成本远低于云端同等算力</p>
-</div>
-<div style="text-align:center;padding:16px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:rgba(196,168,130,0.4);margin-bottom:8px;font-weight:300">02</div>
-<h4 style="font-family:'Noto Serif SC',serif;font-size:0.95rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">数据安全与合规</h4>
-<p style="font-size:0.82rem;color:#9a9488;line-height:1.7;margin:0">全部本地构建，数据永不外传，天然满足高隐私要求</p>
-</div>
-<div style="text-align:center;padding:16px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:rgba(196,168,130,0.4);margin-bottom:8px;font-weight:300">03</div>
-<h4 style="font-family:'Noto Serif SC',serif;font-size:0.95rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">效率与灵活性</h4>
-<p style="font-size:0.82rem;color:#9a9488;line-height:1.7;margin:0">一次构建即可快速复制部署；支持按需定制</p>
-</div>
-</div>
-<div style="text-align:center;max-width:700px;margin:0 auto 24px;padding:24px;background:rgba(196,168,130,0.05);border:1px solid rgba(196,168,130,0.1);border-radius:8px">
-<p style="font-size:0.88rem;color:#b8b0a0;line-height:1.9;margin:0;text-align:left">本地构建能力：从零到生产级全栈，已形成完整工程化交付体系（结构树、验收标准、运维脚本包），可直接输出给需要"自有AI服务器"的客户。</p>
-</div>
-<div style="text-align:center;max-width:640px;margin:0 auto;padding:24px 16px;border-top:1px solid rgba(196,168,130,0.15)">
-<p style="font-size:0.9rem;color:#b8b0a0;line-height:1.9;margin:0 0 8px">如果你正在寻找一套<strong>真正属于自己的、可掌控的本地AI基础设施</strong>，我可以提供从硬件推荐、系统构建、到完整交付与培训的全流程服务。</p>
-<p style="font-size:0.82rem!important;color:#9a9488!important;margin:0">欢迎通过下方<span style="color:#c4a882;font-weight:500">尺牍</span>留言或投递，我会给出针对性方案。</p>
-</div>
-</div>
-</section>
-
-<section class="guestbook-section" id="guestbook">
-<div class="guestbook-inner">
-<h2 class="guestbook-title"><span class="guestbook-mark">尺</span><span>尺牍</span><span class="guestbook-line"></span></h2>
-<form class="guestbook-form" id="guestbook-form">
-<div class="form-field"><label>称呼</label><input type="text" id="name" placeholder="阁下尊姓大名" required></div>
-<div class="form-field"><label>邮箱</label><input type="email" id="email" placeholder="联系邮箱（选填）"></div>
-<div class="form-field"><label>留言</label><textarea id="message" placeholder="在此落笔..." required></textarea></div>
-<button type="submit" class="submit-btn">投递</button>
-</form>
-<div class="poem-line">原来路遥马急，一生只够爱一人</div>
-<div id="messages" class="messages"></div>
-</div>
-</section>
-<div id="toast" class="toast"></div>
-<script src="/assets/guestbook.js"></script>
-<script>
-(function(){
-function r(){
-var m=document.getElementById('messages');
-if(m){
-var c=m.children;
-for(var i=c.length-1;i>=0;i--){
-if(c[i].textContent&&(c[i].textContent.indexOf('暂无')>=0||c[i].textContent.indexOf('待位')>=0)){
-c[i].style.display='none';c[i].parentNode.removeChild(c[i]);
-}
-}
-if(m.textContent&&(m.textContent.indexOf('暂无')>=0||m.textContent.indexOf('待位')>=0)){m.innerHTML='';}
-}
-document.querySelectorAll('.empty,.no-messages,.placeholder,[data-placeholder]').forEach(function(e){e.style.display='none !important';});
-}
-if(document.readyState==='complete'){r();}else{window.addEventListener('load',r);}
-setTimeout(r,1500);setTimeout(r,3000);setTimeout(r,5000);
-})();
-</script>
-<script src="/assets/video-scroll.js"></script>
-<script>
-(function(){
-function positionAISection(){
-  var ai=document.querySelector('.ai-server-section');
-  var root=document.getElementById('root');
-  if(!ai||!root)return false;
-  var sections=root.querySelectorAll('section, article, .section, [class*="section"], [class*="hero"], [class*="Hero"]');
-  if(sections.length===0){
-    var children=root.children;
-    for(var i=0;i<children.length;i++){
-      var tag=children[i].tagName;
-      if(tag!=='SCRIPT'&&tag!=='STYLE'&&tag!=='NOSCRIPT'){
-        sections=[children[i]];
-        break;
-      }
-    }
-  }
-  if(sections.length===0)return false;
-  var hero=sections[0];
-  if(ai.parentNode!==hero.parentNode){
-    hero.parentNode.insertBefore(ai,hero.nextSibling);
-  }
-  ai.style.width='100%';
-  ai.style.maxWidth='100vw';
-  ai.style.overflowX='hidden';
-  ai.style.boxSizing='border-box';
-  return true;
-}
-function fixAllWidths(){
-  var sections=document.querySelectorAll('section[id],section.ai-server-section');
-  for(var i=0;i<sections.length;i++){
-    var s=sections[i];
-    s.style.width='100%';
-    s.style.maxWidth='100vw';
-    s.style.overflowX='hidden';
-    s.style.boxSizing='border-box';
-    s.style.paddingLeft='0';
-    s.style.paddingRight='0';
-    s.style.marginLeft='0';
-    s.style.marginRight='0';
-  }
-}
-setTimeout(function(){if(positionAISection())fixAllWidths()},1500);
-setTimeout(function(){if(positionAISection())fixAllWidths()},3000);
-setTimeout(function(){if(positionAISection())fixAllWidths()},5000);
-setTimeout(function(){if(positionAISection())fixAllWidths()},8000);
-var rootEl=document.getElementById('root');
-if(rootEl){
-  var obs=new MutationObserver(function(){
-    if(positionAISection()){fixAllWidths();obs.disconnect();}
-  });
-  obs.observe(rootEl,{childList:true,subtree:true});
-}
-window.addEventListener('load',function(){positionAISection();fixAllWidths();});
-})();
-</script>
-</body>
-</html>`;
 }
 
 async function handleRequest(request) {
-  const url = new URL(request.url);
-  const path = url.pathname;
-  const hostname = url.hostname;
-
-  if (hostname === 'www.evafang.com') {
-    return new Response(null, {
-      status: 301,
-      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Cache-Control': 'public, max-age=86400' }
-    });
-  }
-
-  if (url.protocol === 'http:') {
-    return new Response(null, {
-      status: 301,
-      headers: { 'Location': 'https://evafang.com' + path + url.search, 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload' }
-    });
-  }
+  var url = new URL(request.url);
 
   if (request.method === 'OPTIONS') {
     return new Response(null, {
+      status: 204,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -473,79 +259,55 @@ async function handleRequest(request) {
     });
   }
 
-  if (IMAGE_MAP[path]) {
-    const imgResp = await proxyImage(path);
-    if (imgResp) return imgResp;
-  }
-
-  if (path.startsWith('/assets/')) {
-    const assetPath = path.replace('/assets/', '');
-    return await proxyAsset(assetPath);
-  }
-
-  if (path === '/messages') {
-    const kv = getKV();
-    if (!kv) return jsonResponse({ success: false, error: 'KV not bound' }, 500);
+  if (url.pathname === '/messages') {
     if (request.method === 'GET') {
-      const list = await getMessages(kv);
-      return jsonResponse({ success: true, data: list });
+      try {
+        var data = await getMessages();
+        return jsonResponse({success: true, data: data});
+      } catch (e) {
+        return jsonResponse({success: false, error: e.message}, 500);
+      }
     }
     if (request.method === 'POST') {
       try {
-        const body = await request.json();
-        const name = sanitizeInput(body.name, 50) || '匿名';
-        const email = sanitizeInput(body.email, 100) || '';
-        const message = sanitizeInput(body.message, 500);
-        if (!message) {
-          return jsonResponse({ success: false, error: '留言内容不能为空' }, 400);
+        var body = await request.json().catch(function() { return {}; });
+        var name = sanitize(body.name, 50);
+        var email = sanitize(body.email, 100);
+        var message = sanitize(body.message, 500);
+        if (!name || !message) {
+          return jsonResponse({success: false, error: '称呼和留言不能为空'}, 400);
         }
-        const entry = {
-          name,
-          email,
-          message,
-          time: new Date().toLocaleString('zh-CN'),
-          timestamp: Date.now()
-        };
-        const list = await addMessage(kv, entry);
-        return jsonResponse({ success: true, data: list });
+        var data = await addMessage(name, email, message);
+        return jsonResponse({success: true, data: data});
       } catch (e) {
-        return jsonResponse({ success: false, error: e.message }, 500);
+        return jsonResponse({success: false, error: e.message}, 500);
       }
     }
+    return jsonResponse({success: false, error: 'Method not allowed'}, 405);
   }
 
-  if (path === '/api/contact') {
-    if (request.method !== 'POST') {
-      return jsonResponse({ success: false, error: 'Method not allowed' }, 405);
-    }
+  if (url.pathname === '/api/contact' && request.method === 'POST') {
     try {
-      const body = await request.json();
-      const name = sanitizeInput(body.name, 50);
-      const email = sanitizeInput(body.email, 100);
-      const message = sanitizeInput(body.message, 2000);
-
+      var body = await request.json().catch(function() { return {}; });
+      var name = sanitize(body.name, 50);
+      var email = sanitize(body.email, 100);
+      var message = sanitize(body.message, 2000);
       if (!name || !message) {
-        return jsonResponse({ success: false, error: '称呼和留言为必填项' }, 400);
+        return jsonResponse({success: false, error: '称呼和留言不能为空'}, 400);
       }
-
-      const result = await sendContactEmail({ name, email, message });
-      if (result.success) {
-        return jsonResponse({ success: true, message: '邮件已发送', emailId: result.id });
-      } else {
-        return jsonResponse({ success: false, error: result.error }, 502);
+      var result = await sendEmail({name: name, email: email, message: message});
+      if (!result.ok) {
+        return jsonResponse({success: false, error: result.err}, 502);
       }
+      return jsonResponse({success: true, message: '邮件已发送', id: result.id});
     } catch (e) {
-      return jsonResponse({ success: false, error: e.message }, 500);
+      return jsonResponse({success: false, error: e.message}, 500);
     }
   }
 
-  if (path === '/health' || path === '/api/health') {
-    return jsonResponse({ success: true, status: 'online', node: 'FZ-001', version: CONFIG.VERSION, ts: Date.now() });
+  if (url.pathname === '/api/health' || url.pathname === '/health') {
+    return jsonResponse({success: true, status: 'online', version: '3.1', ts: Date.now()});
   }
 
-  if (path === '/' || path === '/index.html') {
-    return htmlResponse(renderIndexHtml());
-  }
-
-  return jsonResponse({ success: false, error: 'Not found' }, 404);
+  return proxyStatic(url);
 }
