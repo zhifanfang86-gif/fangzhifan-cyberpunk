@@ -1,2 +1,0 @@
-<div class="form-field" style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden" aria-hidden="true"><label>网站（请勿填写）</label><input type="text" id="website" tabindex="-1" autocomplete="off" placeholder=""></div>
-<div class="form-field"><label>留言</label><textarea id="message" placeholder="在此落笔..." required></textarea></div>
