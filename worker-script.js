@@ -79,6 +79,62 @@ function sanitize(t, maxLen) {
   return t.trim().substring(0, maxLen);
 }
 
+// ===== 防刷保护 v3.5 =====
+var SPAM_KEYWORDS = ['兼职','刷单','刷信誉','代购','加微信','微信：','VX','vx','QQ群','博彩','赌','彩票','贷款','借贷','代开发票','发票','加盟','代理','日赚','月入','点击链接','免费领取','客服QQ','telegram','TG群'];
+function isSpam(text) {
+  if (!text) return false;
+  var t = String(text).toLowerCase();
+  if (/https?:\/\//i.test(t) || /www\./i.test(t)) return true;
+  for (var i = 0; i < SPAM_KEYWORDS.length; i++) {
+    if (t.indexOf(SPAM_KEYWORDS[i].toLowerCase()) !== -1) return true;
+  }
+  return false;
+}
+
+async function rateLimit(ip, bucket) {
+  if (!ip || ip === 'unknown') ip = 'unknown';
+  var k = 'rl:' + bucket + ':' + ip;
+  try {
+    var v = await GUESTBOOK_KV.get(k);
+    if (v) return false;
+    await GUESTBOOK_KV.put(k, '1', {expirationTtl: 60});
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+
+function getIP(request) {
+  return request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+}
+
+async function sendGuestbookNotify(name, email, message) {
+  var key = typeof RESEND_API_KEY !== 'undefined' ? RESEND_API_KEY : null;
+  if (!key) return;
+  var htmlBody = '<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e8e0d4;">' +
+    '<h2 style="color:#b5503c;border-bottom:2px solid #e8e0d4;padding-bottom:12px;">📜 尺牍新留言</h2>' +
+    '<table style="width:100%;border-collapse:collapse;margin-top:16px;">' +
+    '<tr><td style="padding:8px 0;color:#666;width:80px;">称呼</td><td style="padding:8px 0;font-weight:600;">' + escapeHtml(name||'匿名') + '</td></tr>' +
+    '<tr><td style="padding:8px 0;color:#666;">邮箱</td><td style="padding:8px 0;">' + escapeHtml(email||'未填写') + '</td></tr>' +
+    '<tr><td style="padding:8px 0;color:#666;vertical-align:top;">留言</td><td style="padding:8px 0;white-space:pre-wrap;">' + escapeHtml(message||'') + '</td></tr>' +
+    '<tr><td style="padding:8px 0;color:#666;">时间</td><td style="padding:8px 0;color:#999;">' + new Date().toLocaleString('zh-CN') + '</td></tr>' +
+    '</table>' +
+    '<p style="margin-top:24px;color:#999;font-size:0.85rem;">打开 evafang.com#guestbook 查看全部留言</p>' +
+    '</div>';
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: CONFIG.FROM_EMAIL,
+        to: CONFIG.TO_EMAIL,
+        subject: '[evafang.com 尺牍] ' + (name || '访客') + ' 留言了',
+        html: htmlBody
+      })
+    });
+  } catch (e) {}
+}
+
 async function sendEmail(data) {
   var name = data.name, email = data.email, message = data.message;
   var key = typeof RESEND_API_KEY !== 'undefined' ? RESEND_API_KEY : null;
@@ -284,13 +340,29 @@ async function handleRequest(request) {
     if (request.method === 'POST') {
       try {
         var body = await request.json().catch(function() { return {}; });
+        // 蜜罐：机器人填了隐藏字段 → 静默丢弃（假装成功）
+        if (body.website) {
+          return jsonResponse({success: true, data: await getMessages()});
+        }
         var name = sanitize(body.name, 50);
         var email = sanitize(body.email, 100);
         var message = sanitize(body.message, 500);
         if (!name || !message) {
           return jsonResponse({success: false, error: '称呼和留言不能为空'}, 400);
         }
+        if (isSpam(name) || isSpam(message) || isSpam(email)) {
+          return jsonResponse({success: false, error: '内容包含广告信息，无法投递'}, 400);
+        }
+        var existing = await getMessages();
+        var newest = existing.length ? existing[0] : null;
+        if (newest && newest.timestamp && (Date.now() - newest.timestamp < 60000)) {
+          return jsonResponse({success: false, error: '投递太频繁，请 1 分钟后再试'}, 429);
+        }
+        if (newest && newest.name === name && newest.message === message) {
+          return jsonResponse({success: true, data: existing});
+        }
         var data = await addMessage(name, email, message);
+        await sendGuestbookNotify(name, email, message);
         return jsonResponse({success: true, data: data});
       } catch (e) {
         return jsonResponse({success: false, error: e.message}, 500);
@@ -302,11 +374,20 @@ async function handleRequest(request) {
   if (url.pathname === '/api/contact' && request.method === 'POST') {
     try {
       var body = await request.json().catch(function() { return {}; });
+      if (body.website) {
+        return jsonResponse({success: true, message: '邮件已发送', id: 'filtered'});
+      }
       var name = sanitize(body.name, 50);
       var email = sanitize(body.email, 100);
       var message = sanitize(body.message, 2000);
       if (!name || !message) {
         return jsonResponse({success: false, error: '称呼和留言不能为空'}, 400);
+      }
+      if (isSpam(name) || isSpam(message)) {
+        return jsonResponse({success: false, error: '内容包含广告信息，无法发送'}, 400);
+      }
+      if (!(await rateLimit(getIP(request), 'contact'))) {
+        return jsonResponse({success: false, error: '发送太频繁，请 1 分钟后再试'}, 429);
       }
       var result = await sendEmail({name: name, email: email, message: message});
       if (!result.ok) {
@@ -319,7 +400,7 @@ async function handleRequest(request) {
   }
 
   if (url.pathname === '/api/health' || url.pathname === '/health') {
-    return jsonResponse({success: true, status: 'online', version: '3.4', ts: Date.now()});
+    return jsonResponse({success: true, status: 'online', version: '3.5.1', ts: Date.now()});
   }
 
   return proxyStatic(url);
