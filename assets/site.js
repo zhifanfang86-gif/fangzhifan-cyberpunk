@@ -92,4 +92,107 @@
       label.textContent = '发送咨询';
     }
   });
+
+  // Keep the original site’s "尺牍" as a separate, live public conversation.
+  const guestbookForm = $('[data-guestbook-form]');
+  const guestbookFeed = $('[data-guestbook-feed]');
+  const guestbookStatus = $('[data-guestbook-status]');
+  const guestbookCacheKey = 'fangzhifan_guestbook_cache_v2';
+
+  const setGuestbookStatus = (message, type = '') => {
+    if (!guestbookStatus) return;
+    guestbookStatus.textContent = message;
+    guestbookStatus.className = type;
+  };
+  const renderGuestbook = list => {
+    if (!guestbookFeed) return;
+    guestbookFeed.replaceChildren();
+    if (!Array.isArray(list) || !list.length) {
+      const empty = document.createElement('p');
+      empty.className = 'guestbook-loading';
+      empty.textContent = '尺牍暂未落笔。';
+      guestbookFeed.append(empty);
+      return;
+    }
+    list.slice(0, 50).forEach(message => {
+      const entry = document.createElement('article');
+      entry.className = 'guestbook-entry';
+      const head = document.createElement('div');
+      head.className = 'guestbook-entry-head';
+      const name = document.createElement('strong');
+      name.className = 'guestbook-entry-name';
+      name.textContent = String(message.name || '未署名');
+      const time = document.createElement('time');
+      time.className = 'guestbook-entry-time';
+      time.textContent = String(message.time || '');
+      const body = document.createElement('p');
+      body.className = 'guestbook-entry-body';
+      body.textContent = String(message.message || '');
+      head.append(name, time); entry.append(head, body); guestbookFeed.append(entry);
+    });
+  };
+  const loadGuestbook = async ({ silent = false } = {}) => {
+    try {
+      const response = await fetch('/messages', { method: 'GET', cache: 'no-store' });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success || !Array.isArray(result.data)) throw new Error('暂时无法读取留言');
+      localStorage.setItem(guestbookCacheKey, JSON.stringify(result.data));
+      renderGuestbook(result.data);
+      return true;
+    } catch (error) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(guestbookCacheKey) || '[]');
+        if (Array.isArray(cached) && cached.length) renderGuestbook(cached);
+        else if (!silent) renderGuestbook([]);
+      } catch { if (!silent) renderGuestbook([]); }
+      if (!silent) setGuestbookStatus('网络暂不可用，稍后会自动重试。', 'error');
+      return false;
+    }
+  };
+  if (guestbookForm) {
+    loadGuestbook();
+    let pollTimer = setInterval(() => { if (!document.hidden) loadGuestbook({ silent: true }); }, 15000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) loadGuestbook({ silent: true }); });
+    guestbookForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const submit = $('button[type="submit"]', guestbookForm);
+      const data = new FormData(guestbookForm);
+      const name = String(data.get('guestbook-name') || '').trim();
+      const email = String(data.get('guestbook-email') || '').trim();
+      const message = String(data.get('guestbook-message') || '').trim();
+      const website = String(data.get('guestbook-website') || '');
+      if (!name || !message) { setGuestbookStatus('请填写称呼和留言。', 'error'); return; }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setGuestbookStatus('请检查邮箱格式。', 'error'); return; }
+      submit.disabled = true; setGuestbookStatus('正在投递…');
+      try {
+        const response = await fetch('/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message, website }) });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) throw new Error(result.error || '投递失败，请稍后重试。');
+        guestbookForm.reset();
+        if (Array.isArray(result.data)) { localStorage.setItem(guestbookCacheKey, JSON.stringify(result.data)); renderGuestbook(result.data); }
+        else await loadGuestbook({ silent: true });
+        setGuestbookStatus('已投递云端。', 'success');
+      } catch (error) { setGuestbookStatus(error.message || '投递失败，请稍后重试。', 'error'); }
+      finally { submit.disabled = false; }
+    });
+    addEventListener('pagehide', () => clearInterval(pollTimer), { once: true });
+  }
+
+  // Original moving texture is loaded only on larger screens and only near the field record.
+  const fieldVideo = $('[data-field-video]');
+  if (fieldVideo && !reduceMotion && matchMedia('(min-width: 601px)').matches) {
+    const startFieldVideo = () => {
+      const source = $('source[data-src]', fieldVideo);
+      if (!source || source.src) return;
+      source.src = source.dataset.src;
+      fieldVideo.load();
+      fieldVideo.play().catch(() => {});
+    };
+    if ('IntersectionObserver' in window) {
+      const videoObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+        if (entry.isIntersecting) { startFieldVideo(); videoObserver.disconnect(); }
+      }), { rootMargin: '280px 0px' });
+      videoObserver.observe(fieldVideo);
+    } else startFieldVideo();
+  }
 })();
