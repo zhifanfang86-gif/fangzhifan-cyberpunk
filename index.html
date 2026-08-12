@@ -1,247 +1,154 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>fang zhi fan</title>
-<meta name="description" content="fang zhi fan — AI Build, Full Stack, Cyber Security"/>
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
-<link rel="canonical" href="https://evafang.com/"/>
-<link rel="preconnect" href="https://fonts.loli.net"/>
-<link rel="preconnect" href="https://gstatic.loli.net" crossorigin=""/>
-<link href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet"/>
-<link href="https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet"/>
-<script type="module" crossorigin="" src="/assets/index-4r6Lbbs8.js"></script>
-<link rel="stylesheet" crossorigin="" href="/assets/index-BYiqeDJS.css"/>
-<link rel="stylesheet" href="/assets/guestbook.css"/>
-<script>const a=[{from:"资历背书",to:"本地AI服务"},{from:"权威认证",to:"行业知识"},{from:"50+",to:"10+"},{from:"从业年限",to:"从业时间"},{from:"硅谷科技认知体系",to:"硅谷科技体系"},{from:"个人照片/视频存储",to:"节省5位数开支项目"},{from:"文档同步与备份",to:"个人逐步开放"},{from:"家庭影音中心",to:"主要面向企业以及公司"},{from:"智能家居中枢",to:"入门配置推荐"},{from:"8条认证",to:"知识衔接拓扑"},{from:"每个人的数据，都应该属于自己的家",to:"每个人的数据，都应该有自己的家"}];function r(){const e=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,!1);let t;while(t=e.nextNode()){for(const n of a)if(t.textContent.includes(n.from)){t.textContent=t.textContent.replace(new RegExp(n.from,"g"),n.to);break}}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",r)}else{r()}const o=new MutationObserver(function(){r()});o.observe(document.body,{childList:!0,subtree:!0});</script>
-<script>(function(){function f(){document.querySelectorAll('img').forEach(function(i){if(!i.complete||i.naturalWidth===0){var s=i.src.indexOf('?')===-1?'?':'&';i.src=i.src+s+'_cb='+Date.now();}});}if(document.readyState==='complete'){f();}else{window.addEventListener('load',f);}setTimeout(f,4000);})();</script>
-<style>*,*::before,*::after{box-sizing:border-box}html{font-size:16px;-webkit-text-size-adjust:100%}body{overflow-x:hidden;margin:0;padding:0}img,video{max-width:100%;height:auto;display:block}
-.ai-server-section{width:100%;max-width:100vw;overflow-x:hidden;box-sizing:border-box;padding:80px 0 60px;background:linear-gradient(180deg,#0a0a0f 0%,#0d0d14 50%,#0a0a0f 100%);position:relative}
-.ai-server-inner{width:100%;max-width:1400px;margin:0 auto;padding:0 clamp(24px,6vw,80px);position:relative;z-index:1;box-sizing:border-box}
-.guestbook-section{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;padding:60px 0!important;background:linear-gradient(180deg,#ffffff 0%,#f8f5f0 50%,#f0ebe0 100%)!important;border-top:1px solid #e8e0d4;border-bottom:1px solid #e8e0d4;box-sizing:border-box!important}
-.guestbook-inner{width:calc(100% - 56px)!important;max-width:1400px!important;margin-left:max(56px,calc((100% - 1400px + 56px)/2))!important;margin-right:0!important;padding:0 clamp(24px,6vw,80px)!important;box-sizing:border-box!important;overflow-x:hidden!important}
-.messages{text-align:center!important}
-.message{border-bottom:none!important;padding:32px 24px 36px!important}
-.message::after{content:'';display:block;width:56px;height:1px;margin:32px auto 0;background:linear-gradient(90deg,transparent,#c45c48,transparent);opacity:0.45}
-.message:first-child{border-top:none!important}
-.message-header{flex-direction:column!important;align-items:center!important;gap:6px!important;justify-content:center!important}
-.message-author{color:#a07d2e!important;font-size:1.05rem!important;letter-spacing:0.08em!important}
-.message-author::before,.message-author::after{color:#c9a13b!important;opacity:0.75!important}
-.message-time{opacity:0.75!important}
-.message-email{text-align:center!important;color:#5a8a7e!important}
-.message-body{font-family:'Noto Serif SC',serif!important;color:#b5503c!important;line-height:2.1!important;text-indent:0!important;text-align:center!important;max-width:560px!important;margin:0 auto!important}
-.guestbook-inner .poem-line{display:table!important;text-align:center!important;margin-left:auto!important;margin-right:auto!important}
-.empty{text-align:center!important;border-top:none!important;border-bottom:none!important}
-.guestbook-title,.guestbook-title span{color:#3a3228!important;max-width:100%!important}
-.guestbook-title .guestbook-mark{color:#c4a882!important}
-.guestbook-form{width:100%!important;max-width:100%!important}
-.form-field{width:100%!important;max-width:100%!important}
-.guestbook-form label{color:#5a4e3e!important}
-.guestbook-form input,.guestbook-form textarea{width:100%!important;max-width:100%!important;background:#fffdfb!important;border:1px solid #ddd5c8!important;color:#3a3228!important;box-sizing:border-box!important;padding:12px 16px!important}
-.guestbook-form input::placeholder,.guestbook-form textarea::placeholder{color:#b0a898!important}
-.submit-btn{background:linear-gradient(135deg,#c4a882 0%,#a88b5e 100%)!important;color:#fff!important;border:none!important;box-sizing:border-box!important}
-.grid-hs-features,.grid-hs-compare,.hs-features{display:none!important}
-@media(max-width:768px){
-.ai-server-section{padding:60px 0 40px!important}
-.ai-server-inner{padding:0 16px!important}
-.hero-title{font-size:2rem!important}.hero-subtitle{font-size:1rem!important}.section-title{font-size:1.5rem!important}
-.card-grid,.services-grid,.portfolio-grid{grid-template-columns:1fr!important;gap:1rem!important;padding:0 1rem!important}
-.nav-links{display:none!important}.mobile-nav{display:flex!important}.container{padding:0 1rem!important}
-.side-nav{display:flex!important;width:44px!important}body{padding-left:0!important;margin-left:0!important}
-#guestbook{margin-left:0!important;width:100%!important}
-.guestbook-section{width:100%!important;max-width:100%!important;overflow-x:hidden!important;padding:40px 0!important;box-sizing:border-box!important;margin-left:0!important}
-.guestbook-inner{width:calc(100% - 44px)!important;max-width:none!important;margin-left:44px!important;margin-right:0!important;padding:0 16px!important;box-sizing:border-box!important;overflow-x:hidden!important}
-.guestbook-title{font-size:1.2rem!important;gap:8px!important;margin-bottom:24px!important;width:100%!important;max-width:100%!important}
-.guestbook-mark{width:28px!important;height:28px!important;font-size:0.85rem!important;flex-shrink:0!important}
-.guestbook-line{display:none!important}.guestbook-form{gap:16px!important;margin-bottom:24px!important;width:100%!important}
-.form-field{width:100%!important;max-width:100%!important}
-.form-field input,.form-field textarea{font-size:16px!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;padding:12px 16px!important}
-.submit-btn{width:100%!important;text-align:center;box-sizing:border-box!important}
-.video-scroll-container video{opacity:0.08!important}
-.poem-line{font-size:0.75rem!important;color:#c75b67!important;margin:16px auto 8px!important;letter-spacing:0.12em;display:table!important;text-align:center!important}
-}
-@media(min-width:769px) and (max-width:1024px){
-.card-grid,.services-grid,.portfolio-grid{grid-template-columns:repeat(2,1fr)!important}
-}
-#root{width:100%;max-width:100vw;overflow-x:hidden}
-.video-scroll-container{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:-1;overflow:hidden;background:#0a0a0f}.video-scroll-container video{position:absolute;top:50%;left:50%;min-width:100%;min-height:100%;width:auto;height:auto;transform:translate(-50%,-50%);object-fit:cover;opacity:.6}.video-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(10,10,15,.45) 0%,rgba(10,10,15,.2) 50%,rgba(10,10,15,.65) 100%);pointer-events:none}.video-fallback{display:none;position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a0a0f 0%,#1a1a2e 50%,#0d0d14 100%)}.video-fallback.active{display:block}
-/* Homepage hero image: real abstract server photography (Unsplash, selected) */
-[code-path="src/sections/HeroSection.tsx:27:9"]{background-image:linear-gradient(rgba(17,17,17,.45) 0%,rgba(17,17,17,.30) 50%,rgba(17,17,17,.65) 100%),url("https://images.unsplash.com/photo-1667264501379-c1537934c7ab?auto=format&fit=crop&w=2400&q=85")!important}
-</style>
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1667264501379-c1537934c7ab?auto=format&fit=crop&w=2400&q=85" fetchpriority="high">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0d12">
+  <meta name="description" content="方志凡独立技术实践：本地 AI、系统架构、网络安全与可交付的软件基础设施。">
+  <link rel="canonical" href="https://evafang.com/">
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1667264501379-c1537934c7ab?auto=format&fit=crop&w=1800&q=85" imagesizes="100vw">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="方志凡">
+  <meta property="og:title" content="方志凡 · Independent Technology Practice">
+  <meta property="og:description" content="本地 AI、系统架构、网络安全与可交付的软件基础设施。">
+  <meta property="og:url" content="https://evafang.com/">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1667264501379-c1537934c7ab?auto=format&fit=crop&w=1200&q=85">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>方志凡 · Independent Technology Practice</title>
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/site-extra.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"方志凡","alternateName":"Fang Zhifan","url":"https://evafang.com/","email":"EVAFang@proton.me","description":"本地 AI、系统架构、网络安全与可交付的软件基础设施。","areaServed":"Worldwide","serviceType":["AI infrastructure","System architecture","Network security","Software delivery"]}</script>
+  <script src="/assets/site.js" defer></script>
 </head>
 <body>
-<div class="video-scroll-container" id="video-container">
-<video id="scroll-video" muted playsinline preload="auto" loop autoplay>
-<source src="https://videos.pexels.com/video-files/3129671/3129671-hd_1920_1080_30fps.mp4" type="video/mp4">
-<source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-9976-large.mp4" type="video/mp4">
-</video>
-<img src="https://images.unsplash.com/photo-1667264501379-c1537934c7ab?auto=format&fit=crop&w=2400&q=85" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
-<div class="video-overlay"></div>
-<div class="video-fallback" id="video-fallback"></div>
-</div>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="page-noise" aria-hidden="true"></div>
 
-<div id="root"></div>
+  <header class="site-header" data-header>
+    <div class="shell header-inner">
+      <a class="brand" href="#top" aria-label="返回首页">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span><strong>方志凡 <b>/ FANG ZHIFAN</b></strong><small>INDEPENDENT PRACTICE</small></span>
+      </a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>
+        <span class="sr-only">打开菜单</span><i></i><i></i>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="主导航" data-menu>
+        <a href="#capabilities">能力</a>
+        <a href="#method">方法</a>
+        <a href="#resources">资源</a>
+        <a href="#services">服务</a>
+        <a href="#contact" class="nav-cta">发起咨询 <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
 
-<section class="ai-server-section" id="ai-server">
-<div class="ai-server-inner">
-<div style="text-align:center;margin-bottom:30px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#c4a882;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:16px;opacity:0.8">独立构建 · 长期验证</div>
-<h2 style="font-family:'Noto Serif SC',serif;font-size:2.2rem;font-weight:600;color:#e8d5b5;margin:0 0 16px;letter-spacing:0.05em">本地 AI 全栈微服务器系统</h2>
-<p style="font-size:1rem;color:#9a9488;line-height:1.8;max-width:640px;margin:0 auto">从硬件选型到软件架构、运维闭环，全部由我独立完成构建与长期验证</p>
-</div>
-<div style="width:100%;height:260px;border-radius:8px;overflow:hidden;margin-bottom:30px;position:relative;border:1px solid rgba(196,168,130,0.15)">
-<img src="/images/real/local-ai-hero.jpg" alt="本地AI服务器机房实景" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.8">
-<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,15,0.35) 0%,rgba(10,10,15,0.75) 100%);pointer-events:none"></div>
-<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;font-family:'JetBrains Mono',monospace;pointer-events:none">
-<div style="font-size:0.9rem;color:#d4a853;letter-spacing:0.35em">LOCAL AI INFRASTRUCTURE</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:0.8rem;color:#e8d5b5;letter-spacing:0.2em;opacity:0.9">本地部署 · 数据闭环 · 自主可控</div>
-</div>
-</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">核心能力</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px">
-<h3 style="font-family:'Noto Serif SC',serif;font-size:1rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">稳定部署</h3>
-<p style="font-size:0.85rem;color:#9a9488;line-height:1.7;margin:0">本地大模型稳定运行，支持多场景自动化工作流</p>
-</div>
-<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px">
-<h3 style="font-family:'Noto Serif SC',serif;font-size:1rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">安全远程</h3>
-<p style="font-size:0.85rem;color:#9a9488;line-height:1.7;margin:0">完整远程安全访问、自动监控修复、自启动能力，装好即用</p>
-</div>
-<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:16px">
-<h3 style="font-family:'Noto Serif SC',serif;font-size:1rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">纯本地闭环</h3>
-<p style="font-size:0.85rem;color:#9a9488;line-height:1.7;margin:0">所有数据与服务均在本地运行，无任何云端依赖</p>
-</div>
-</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">使用场景</div>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px 24px;max-width:560px;margin:0 auto 24px">
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>节省5位数开支项目</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>个人构建（医疗、金融、信息隐私）</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>数据不出域</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>个人逐步开放</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>主要面向企业以及公司</span></div>
-<div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;color:#b8b0a0"><span style="width:6px;height:6px;border-radius:50%;background:#c4a882;flex-shrink:0"></span><span>入门配置推荐（5万起步）</span></div>
-</div>
-<div style="font-family:'Noto Serif SC',serif;font-size:1.3rem;color:#c4a882;margin:40px 0 24px;text-align:center;letter-spacing:0.1em">商业价值</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-<div style="text-align:center;padding:16px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:rgba(196,168,130,0.4);margin-bottom:8px;font-weight:300">01</div>
-<h4 style="font-family:'Noto Serif SC',serif;font-size:0.95rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">成本优势显著</h4>
-<p style="font-size:0.82rem;color:#9a9488;line-height:1.7;margin:0">仅需一台高性能主机，整体拥有成本远低于云端同等算力</p>
-</div>
-<div style="text-align:center;padding:16px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:rgba(196,168,130,0.4);margin-bottom:8px;font-weight:300">02</div>
-<h4 style="font-family:'Noto Serif SC',serif;font-size:0.95rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">数据安全与合规</h4>
-<p style="font-size:0.82rem;color:#9a9488;line-height:1.7;margin:0">全部本地构建，数据永不外传，天然满足高隐私要求</p>
-</div>
-<div style="text-align:center;padding:16px">
-<div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;color:rgba(196,168,130,0.4);margin-bottom:8px;font-weight:300">03</div>
-<h4 style="font-family:'Noto Serif SC',serif;font-size:0.95rem;color:#e8d5b5;margin:0 0 8px;font-weight:500">效率与灵活性</h4>
-<p style="font-size:0.82rem;color:#9a9488;line-height:1.7;margin:0">一次构建即可快速复制部署；支持按需定制</p>
-</div>
-</div>
-<div style="text-align:center;max-width:700px;margin:0 auto 24px;padding:24px;background:rgba(196,168,130,0.05);border:1px solid rgba(196,168,130,0.1);border-radius:8px">
-<p style="font-size:0.88rem;color:#b8b0a0;line-height:1.9;margin:0;text-align:left">本地构建能力：从零到生产级全栈，已形成完整工程化交付体系（结构树、验收标准、运维脚本包），可直接输出给需要"自有AI服务器"的客户。</p>
-</div>
-<div style="text-align:center;max-width:640px;margin:0 auto;padding:24px 16px;border-top:1px solid rgba(196,168,130,0.15)">
-<p style="font-size:0.9rem;color:#b8b0a0;line-height:1.9;margin:0 0 8px">如果你正在寻找一套<strong>真正属于自己的、可掌控的本地AI基础设施</strong>，我可以提供从硬件推荐、系统构建、到完整交付与培训的全流程服务。</p>
-<p style="font-size:0.82rem!important;color:#9a9488!important;margin:0">欢迎通过下方<span style="color:#c4a882;font-weight:500">尺牍</span>留言或投递，我会给出针对性方案。</p>
-</div>
-</div>
-</section>
+  <main id="main">
+    <section id="top" class="hero section">
+      <div class="hero-art" aria-hidden="true"><img src="https://images.unsplash.com/photo-1667264501379-c1537934c7ab?auto=format&fit=crop&w=1800&q=85" alt=""></div>
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="shell hero-grid">
+        <div class="hero-copy reveal">
+          <p class="eyebrow"><span></span> SYSTEMS, NOT SLOGANS</p>
+          <h1>把复杂技术，<em>落成</em><br>可长期运行的系统。</h1>
+          <p class="hero-lede">面向真实业务场景，提供从需求澄清、架构设计到交付运维的一体化技术实践。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#contact">开始一次咨询 <span aria-hidden="true">↘</span></a>
+            <a class="button button-quiet" href="#services">查看服务范围</a>
+          </div>
+        </div>
+        <aside class="hero-panel reveal" aria-label="服务方向">
+          <p class="panel-kicker">FOCUS AREAS / 01—04</p>
+          <ul>
+            <li><b>01</b><span>本地 AI 与知识系统</span></li>
+            <li><b>02</b><span>全栈产品与系统架构</span></li>
+            <li><b>03</b><span>网络、安全与远程访问</span></li>
+            <li><b>04</b><span>部署、自动化与持续运维</span></li>
+          </ul>
+          <p class="panel-note">从认知开始，而不是从工具开始。</p>
+        </aside>
+      </div>
+      <div class="shell hero-foot" aria-hidden="true"><span>SCROLL TO EXPLORE</span><i></i><span>方志凡 / 2026</span></div>
+    </section>
 
-<section class="guestbook-section" id="guestbook">
-<div class="guestbook-inner">
-<h2 class="guestbook-title"><span class="guestbook-mark">尺</span><span>尺牍</span><span class="guestbook-line"></span></h2>
-<form class="guestbook-form" id="guestbook-form">
-<div class="form-field"><label>称呼</label><input type="text" id="name" placeholder="阁下尊姓大名" required></div>
-<div class="form-field"><label>邮箱</label><input type="email" id="email" placeholder="联系邮箱（选填）"></div>
-<div class="form-field" style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden" aria-hidden="true"><label>网站（请勿填写）</label><input type="text" id="website" tabindex="-1" autocomplete="off" placeholder=""></div>
-<div class="form-field"><label>留言</label><textarea id="message" placeholder="在此落笔..." required></textarea></div>
-<button type="submit" class="submit-btn">投递</button>
-</form>
-<div class="poem-line">原来路遥马急，一生只够爱一人</div>
-<div id="messages" class="messages"></div>
-</div>
-</section>
-<div id="toast" class="toast"></div>
-<script src="/assets/guestbook.js"></script>
-<script>
-(function(){
-function r(){
-var m=document.getElementById('messages');
-if(m){
-var c=m.children;
-for(var i=c.length-1;i>=0;i--){
-if(c[i].textContent&&(c[i].textContent.indexOf('暂无')>=0||c[i].textContent.indexOf('待位')>=0)){
-c[i].style.display='none';c[i].parentNode.removeChild(c[i]);
-}
-}
-if(m.textContent&&(m.textContent.indexOf('暂无')>=0||m.textContent.indexOf('待位')>=0)){m.innerHTML='';}
-}
-document.querySelectorAll('.empty,.no-messages,.placeholder,[data-placeholder]').forEach(function(e){e.style.display='none !important';});
-}
-if(document.readyState==='complete'){r();}else{window.addEventListener('load',r);}
-setTimeout(r,1500);setTimeout(r,3000);setTimeout(r,5000);
-})();
-</script>
-<script src="/assets/video-scroll.js"></script>
-<script>
-(function(){
-function positionAISection(){
-  var ai=document.querySelector('.ai-server-section');
-  var root=document.getElementById('root');
-  if(!ai||!root)return false;
-  var sections=root.querySelectorAll('section, article, .section, [class*="section"], [class*="hero"], [class*="Hero"]');
-  if(sections.length===0){
-    var children=root.children;
-    for(var i=0;i<children.length;i++){
-      var tag=children[i].tagName;
-      if(tag!=='SCRIPT'&&tag!=='STYLE'&&tag!=='NOSCRIPT'){
-        sections=[children[i]];
-        break;
-      }
-    }
-  }
-  if(sections.length===0)return false;
-  var hero=sections[0];
-  if(ai.parentNode!==hero.parentNode){
-    hero.parentNode.insertBefore(ai,hero.nextSibling);
-  }
-  ai.style.width='100%';
-  ai.style.maxWidth='100vw';
-  ai.style.overflowX='hidden';
-  ai.style.boxSizing='border-box';
-  return true;
-}
-function fixAllWidths(){
-  var sections=document.querySelectorAll('section[id],section.ai-server-section');
-  for(var i=0;i<sections.length;i++){
-    var s=sections[i];
-    s.style.width='100%';
-    s.style.maxWidth='100vw';
-    s.style.overflowX='hidden';
-    s.style.boxSizing='border-box';
-    s.style.paddingLeft='0';
-    s.style.paddingRight='0';
-    s.style.marginLeft='0';
-    s.style.marginRight='0';
-  }
-}
-setTimeout(function(){if(positionAISection())fixAllWidths()},1500);
-setTimeout(function(){if(positionAISection())fixAllWidths()},3000);
-setTimeout(function(){if(positionAISection())fixAllWidths()},5000);
-setTimeout(function(){if(positionAISection())fixAllWidths()},8000);
-var rootEl=document.getElementById('root');
-if(rootEl){
-  var obs=new MutationObserver(function(){
-    if(positionAISection()){fixAllWidths();obs.disconnect();}
-  });
-  obs.observe(rootEl,{childList:true,subtree:true});
-}
-window.addEventListener('load',function(){positionAISection();fixAllWidths();});
-})();
-</script>
+    <section id="capabilities" class="section capability-section">
+      <div class="shell">
+        <div class="section-heading reveal">
+          <p class="eyebrow"><span></span> WHAT IS BUILT</p>
+          <div><h2>不是“技术堆栈”，<br>而是完整的交付闭环。</h2><p>每项能力都以可验证的结果为终点：能部署、能交接、能维护，也能在需求变化后继续演进。</p></div>
+        </div>
+        <div class="capability-grid">
+          <article class="capability-card reveal"><p>01 / AI INFRA</p><h3>本地 AI<br>与知识系统</h3><p>私有化模型、RAG 知识库、智能体与自动化工作流。重点是数据边界、可观测性与持续可用。</p><ul><li>模型与硬件选型</li><li>知识库与工作流</li><li>权限与数据治理</li></ul></article>
+          <article class="capability-card reveal"><p>02 / ARCHITECTURE</p><h3>产品与<br>系统架构</h3><p>从信息架构、前后端协作到接口和数据模型，为产品建立清晰、可扩展的技术底座。</p><ul><li>需求拆解与技术方案</li><li>Web 与业务系统</li><li>API 与数据架构</li></ul></article>
+          <article class="capability-card reveal"><p>03 / RELIABILITY</p><h3>安全、部署<br>与长期运维</h3><p>将访问控制、自动部署、监控告警和运行手册纳入交付，而不是上线后的临时补丁。</p><ul><li>安全远程访问</li><li>CI/CD 与容器化</li><li>可观测性与应急预案</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="method" class="section method-section">
+      <div class="shell method-layout">
+        <div class="method-intro reveal"><p class="eyebrow"><span></span> HOW WE WORK</p><h2>先厘清问题，<br>再选择技术。</h2><p>复杂系统的风险往往不在代码，而在没有被说清的边界、目标和责任。工作从这些问题开始。</p></div>
+        <ol class="method-list">
+          <li class="reveal"><span>01</span><div><h3>认知对齐</h3><p>明确目标、使用者、约束与风险，定义什么才算“交付完成”。</p></div></li>
+          <li class="reveal"><span>02</span><div><h3>架构落图</h3><p>把系统边界、数据流、权限和运行方式整理成可决策的方案。</p></div></li>
+          <li class="reveal"><span>03</span><div><h3>渐进构建</h3><p>优先验证关键路径，以可演示的阶段成果持续校正方向。</p></div></li>
+          <li class="reveal"><span>04</span><div><h3>可持续交付</h3><p>连同部署、文档、监控和交接一并完成，让系统能被真正使用。</p></div></li>
+        </ol>
+        <div class="system-map reveal" aria-label="系统交付关系图"><p>DELIVERY SYSTEM MAP</p><div class="map-flow"><span>目标</span><i></i><span>架构</span><i></i><span>构建</span><i></i><span>运行</span></div><small>每一环都影响下一环；交付不是上线的那一刻，而是可以持续运行的开始。</small></div>
+      </div>
+    </section>
+
+    <section id="resources" class="section resources-section">
+      <div class="shell">
+        <div class="section-heading reveal"><p class="eyebrow"><span></span> FIELD NOTES</p><div><h2>进入项目之前，<br>先看清关键问题。</h2><p>面向项目负责人和技术团队的简短参考入口。它们不是模板答案，而是帮助你组织一次有效咨询的起点。</p></div></div>
+        <div class="resource-grid">
+          <article class="resource-card reveal"><span>01</span><p>PROJECT BRIEF</p><h3>项目启动<br>准备清单</h3><button type="button" class="text-link resource-open" data-resource="brief">打开清单 <b aria-hidden="true">↗</b></button></article>
+          <article class="resource-card reveal"><span>02</span><p>LOCAL AI</p><h3>本地 AI 的<br>决策框架</h3><button type="button" class="text-link resource-open" data-resource="ai">查看框架 <b aria-hidden="true">↗</b></button></article>
+          <article class="resource-card reveal"><span>03</span><p>SECURITY BASELINE</p><h3>安全与交付<br>的基础基线</h3><button type="button" class="text-link resource-open" data-resource="security">查看要点 <b aria-hidden="true">↗</b></button></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="section services-section">
+      <div class="shell">
+        <div class="section-heading reveal"><p class="eyebrow"><span></span> ENGAGEMENTS</p><div><h2>按问题进入，<br>按成果结束。</h2><p>可以从一次架构诊断开始，也可以进入一个完整的建设周期。范围、节奏和交付物在开始前共同确定。</p></div></div>
+        <div class="service-list">
+          <article class="service-row reveal"><span>01</span><div><h3>技术方案与架构诊断</h3><p>适用于方向不明、系统需要重构，或准备启动关键项目的阶段。</p></div><a href="#contact" data-topic="技术方案与架构诊断" aria-label="咨询技术方案与架构诊断">咨询 <b>↗</b></a></article>
+          <article class="service-row reveal"><span>02</span><div><h3>本地 AI 基础设施</h3><p>从算力、模型、知识库到权限和运维，构建可控的企业或个人 AI 环境。</p></div><a href="#contact" data-topic="本地 AI 基础设施" aria-label="咨询本地 AI 基础设施">咨询 <b>↗</b></a></article>
+          <article class="service-row reveal"><span>03</span><div><h3>产品与业务系统交付</h3><p>将业务目标转化为可使用的产品：信息架构、界面、服务端和上线流程协同推进。</p></div><a href="#contact" data-topic="产品与业务系统交付" aria-label="咨询产品与业务系统交付">咨询 <b>↗</b></a></article>
+          <article class="service-row reveal"><span>04</span><div><h3>安全访问与运行可靠性</h3><p>围绕身份、网络、自动化部署和可观测性，补齐长期运行所需的基础能力。</p></div><a href="#contact" data-topic="安全访问与运行可靠性" aria-label="咨询安全访问与运行可靠性">咨询 <b>↗</b></a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section signal-section">
+      <div class="shell signal-card reveal">
+        <p class="eyebrow"><span></span> A GOOD START</p>
+        <h2>如果你能说明现状、目标与时间，<br>我们就能开始一次有效的对话。</h2>
+        <a class="text-link" href="#contact">发起项目咨询 <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <section id="contact" class="section contact-section">
+      <div class="shell contact-layout">
+        <div class="contact-copy reveal"><p class="eyebrow"><span></span> CONTACT</p><h2>把问题写下来，<br>从一次清晰的对话开始。</h2><p>描述你的现状、希望达成的结果，以及任何已知的约束。我会基于信息判断最合适的下一步。</p><a class="mail-link" href="mailto:EVAFang@proton.me">EVAFang@proton.me <span aria-hidden="true">↗</span></a><p class="privacy-inline">提交即代表你同意我仅为回复与项目评估处理这些信息。</p></div>
+        <form class="contact-form reveal" data-contact-form novalidate>
+          <div class="form-row"><label>如何称呼<input name="name" autocomplete="name" maxlength="50" required placeholder="你的称呼"></label><label>联系邮箱<input name="email" type="email" autocomplete="email" maxlength="100" placeholder="name@example.com"></label></div>
+          <label>你想讨论的方向<select name="topic"><option>技术方案与架构诊断</option><option>本地 AI 基础设施</option><option>产品与业务系统交付</option><option>安全访问与运行可靠性</option><option>其他合作</option></select></label>
+          <label>项目概述<textarea name="message" maxlength="1200" required placeholder="例如：现状、目标、时间安排，或希望优先解决的问题。"></textarea></label>
+          <div class="honeypot" aria-hidden="true"><label>网站<input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <div class="form-footer"><p data-form-status role="status" aria-live="polite"></p><button class="button button-primary" type="submit"><span data-submit-label>发送咨询</span> <span aria-hidden="true">↗</span></button></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-top"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">F</span><span><strong>方志凡 <b>/ FANG ZHIFAN</b></strong><small>INDEPENDENT PRACTICE</small></span></a><div><a href="#capabilities">能力</a><a href="#method">方法</a><a href="#resources">资源</a><a href="#services">服务</a><a href="#contact">联系</a></div></div>
+    <div class="shell footer-bottom"><span>© <span data-year></span> Fang Zhifan. All rights reserved.</span><a href="#contact">隐私说明</a><span>BUILT FOR CLARITY.</span></div>
+  </footer>
+  <button class="back-top" type="button" aria-label="返回顶部" data-back-top>↑</button>
+  <dialog class="resource-dialog" data-resource-dialog aria-labelledby="resource-title"><div class="dialog-top"><p class="eyebrow" data-resource-kicker></p><button type="button" aria-label="关闭" data-dialog-close>×</button></div><h2 id="resource-title" data-resource-title></h2><div data-resource-body></div><div class="dialog-footer"><a class="button button-primary" href="#contact" data-dialog-contact>带着这些信息咨询 <span aria-hidden="true">↘</span></a></div></dialog>
 </body>
 </html>
