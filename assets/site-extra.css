@@ -62,3 +62,7 @@ body{font-size:15px}.site-nav{gap:21px;font-size:12px}.nav-index{display:inline-
 
 /* A private reading path: silent until deliberately explored. */
 .footer-bottom .news-gateway{color:inherit;text-decoration:none}.footer-bottom .news-gateway:hover,.footer-bottom .news-gateway:focus-visible{color:#d9ff5a;text-decoration:underline;text-decoration-color:rgba(217,255,90,.55);text-decoration-thickness:1px;text-underline-offset:4px}
+
+
+/* Mobile is a touch surface first: calm spacing, generous targets. */
+@media(max-width:600px){.brand{display:inline-flex;align-items:center;min-height:44px}.menu-button{min-width:44px;min-height:44px}.resource-open,.service-row>a,.text-link,.mail-link,.archive-practice a{min-height:44px}.resource-open{padding-top:5px;padding-bottom:5px}.service-row>a{display:inline-flex;align-items:center;justify-content:flex-end;min-width:44px}.field-section,.capability-section,.matrix-section,.method-section,.archive-section,.resources-section,.services-section,.showcase-section,.contact-section,.guestbook-section{padding-top:48px;padding-bottom:48px}.footer-top>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;width:100%}.footer-top>div a{display:inline-flex;align-items:center;justify-content:flex-start;min-height:44px}.footer-bottom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;align-items:center}.footer-bottom>a{display:inline-flex;align-items:center;min-height:44px}.footer-bottom>a:last-child{grid-column:1/-1}}
