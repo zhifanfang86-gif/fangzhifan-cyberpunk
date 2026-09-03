@@ -3,6 +3,7 @@ addEventListener('fetch', event => {
 });
 
 const CONFIG = {
+  VERSION:       '3.5.2',
   FROM_EMAIL:    'onboarding@resend.dev',
   TO_EMAIL:      'zhifanfang86@gmail.com',
   KV_KEY:        'messages',
@@ -400,7 +401,7 @@ async function handleRequest(request) {
   }
 
   if (url.pathname === '/api/health' || url.pathname === '/health') {
-    return jsonResponse({success: true, status: 'online', version: '3.5.1', ts: Date.now()});
+    return jsonResponse({success: true, status: 'online', version: CONFIG.VERSION, ts: Date.now()});
   }
 
   return proxyStatic(url);
