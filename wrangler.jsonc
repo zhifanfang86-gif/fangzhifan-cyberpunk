@@ -1,0 +1,53 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fangzhifan-guestbook",
+  "main": "worker-script.js",
+  "compatibility_date": "2026-09-03",
+  "workers_dev": false,
+  "keep_vars": true,
+  "routes": [
+    {
+      "pattern": "evafang.com/messages*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "www.evafang.com/messages*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "evafang.com/api/contact*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "www.evafang.com/api/contact*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "evafang.com/api/health*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "www.evafang.com/api/health*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "evafang.com/health*",
+      "zone_name": "evafang.com"
+    },
+    {
+      "pattern": "www.evafang.com/health*",
+      "zone_name": "evafang.com"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "GUESTBOOK_KV",
+      "id": "36f7018eca6d4295a403dbddf699518d"
+    }
+  ],
+  "secrets": {
+    "required": [
+      "RESEND_API_KEY"
+    ]
+  }
+}
