@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0d12">
+  <meta name="description" content="与方志凡的站内助手对话：了解服务范围、合作方式，或先把技术问题说清楚。">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://evafang.com/chat/">
+  <title>对话 · 方志凡</title>
+  <link rel="stylesheet" href="/assets/site.css?v=d4a9f2c">
+  <link rel="stylesheet" href="/assets/site-extra.css?v=f9db112">
+  <link rel="stylesheet" href="/assets/chat.css?v=3.6.0">
+</head>
+<body class="subpage">
+  <header class="subpage-header"><div class="shell header-inner">
+    <a class="brand" href="/" aria-label="返回首页"><span class="brand-mark" aria-hidden="true">F</span><span><strong>方志凡 <b>/ FANG ZHIFAN</b></strong><small>INDEPENDENT PRACTICE</small></span></a>
+    <nav class="subpage-nav" aria-label="二级导航"><a href="/">首页</a><a href="/services/">服务范围</a><a class="subpage-nav-cta" href="/consulting/">发起咨询 <span class="arrow-mark" aria-hidden="true">→</span></a></nav>
+  </div></header>
+  <main>
+    <section class="subpage-hero chat-hero"><div class="shell subpage-hero-grid"><div><p class="eyebrow"><span></span> SITE ASSISTANT / 04</p><h1>先问一句，<br>再决定<em>要不要谈</em></h1></div><p class="subpage-lede">这是站内助手，基于 DeepSeek。可以先问服务范围、合作方式或一个具体的技术问题；涉及报价与排期，它会把你引到咨询页。</p></div></section>
+
+    <section class="subpage-section chat-section"><div class="shell">
+      <article class="chat-panel" id="chat" data-chat>
+        <div class="chat-head">
+          <p class="chat-status" data-status aria-live="polite"><i class="chat-dot" data-dot></i><span data-status-text>正在连接…</span></p>
+          <button type="button" class="chat-clear" data-clear hidden>清空对话</button>
+        </div>
+
+        <div class="chat-log" data-log role="log" aria-live="polite" aria-relevant="additions text" aria-label="对话记录">
+          <div class="chat-empty" data-empty>
+            <p class="chat-empty-title">从一个问题开始</p>
+            <p class="chat-empty-lede">回答只作参考。对话不会被保存到服务器，刷新页面后仍在本机保留，关闭标签页即清除。</p>
+            <div class="chat-suggest" data-suggest>
+              <button type="button">本地部署一套私有知识库，需要什么硬件？</button>
+              <button type="button">你们的合作一般怎么开始、怎么收尾？</button>
+              <button type="button">一个小团队的系统，CI/CD 和监控最少要做到什么程度？</button>
+            </div>
+          </div>
+        </div>
+
+        <form class="chat-form" data-form autocomplete="off">
+          <label class="sr-only" for="chat-input">输入问题</label>
+          <textarea id="chat-input" data-input rows="1" maxlength="2000" placeholder="输入你的问题…" enterkeyhint="send" required></textarea>
+          <div class="honeypot" aria-hidden="true"><label for="chat-website">网站</label><input id="chat-website" data-hp type="text" name="website" tabindex="-1" autocomplete="off"></div>
+          <div class="chat-actions">
+            <p class="chat-hint" data-hint><span class="chat-hint-keys">Enter 发送 · Shift + Enter 换行</span><span class="chat-count" data-count>0 / 2000</span></p>
+            <button type="button" class="chat-stop" data-stop hidden>停止</button>
+            <button type="submit" class="chat-send" data-send disabled>发送 <span class="arrow-mark" aria-hidden="true">→</span></button>
+          </div>
+          <p class="chat-error" data-error role="alert" hidden></p>
+        </form>
+      </article>
+    </div></section>
+
+    <section class="subpage-cta"><div class="shell"><div><h2>聊清楚了？<br>把它变成一次正式的咨询</h2><p>咨询页会帮你用现状、目标和边界整理第一次沟通所需的信息。</p></div><a class="button button-primary" href="/consulting/">进入咨询页 <span class="arrow-mark" aria-hidden="true">→</span></a></div></section>
+  </main>
+  <footer class="subpage-footer"><div class="shell"><span>方志凡 / INDEPENDENT PRACTICE</span><a href="/">返回首页 <span class="arrow-mark" aria-hidden="true">→</span></a></div></footer>
+  <script src="/assets/chat.js?v=3.6.0" defer></script>
+</body>
+</html>
