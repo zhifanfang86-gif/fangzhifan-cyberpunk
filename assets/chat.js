@@ -65,6 +65,7 @@
   function autosize() {
     inputEl.style.height = 'auto';
     inputEl.style.height = Math.min(inputEl.scrollHeight, 180) + 'px';
+    inputEl.style.overflowY = inputEl.scrollHeight > 180 ? 'auto' : 'hidden';
   }
 
   function startCooldown(seconds) {

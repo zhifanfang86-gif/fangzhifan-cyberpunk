@@ -1,4 +1,5 @@
 /* 对话页 /chat/ —— 延续 subpage 深色配色（粉 / 青柠 / 衬线标题 / 等宽标签） */
+.chat-panel [hidden]{display:none!important}
 .chat-hero{padding-bottom:64px}
 .chat-section{padding:72px 0 96px}
 .chat-panel{max-width:860px;margin:0 auto;display:flex;flex-direction:column;background:rgba(255,255,255,.035);border:1px solid rgba(244,168,187,.26);border-radius:4px;overflow:hidden}
@@ -51,7 +52,7 @@
 .chat-msg.is-failed .chat-msg-body{color:#ffb3aa}
 
 .chat-form{position:relative;display:flex;flex-direction:column;gap:12px;padding:16px 22px 18px;border-top:1px solid rgba(244,168,187,.2);background:rgba(9,13,18,.5)}
-.chat-form textarea{display:block;width:100%;min-height:48px;max-height:180px;padding:12px 0;border:0;border-bottom:1px solid rgba(244,168,187,.35);border-radius:0;background:transparent;color:#fff;font-size:15px;line-height:1.6;resize:none;outline:0;transition:border-color .2s}
+.chat-form textarea{display:block;width:100%;min-height:48px;max-height:180px;padding:12px 0;border:0;border-bottom:1px solid rgba(244,168,187,.35);border-radius:0;background:transparent;color:#fff;font-size:15px;line-height:1.6;resize:none;overflow-y:hidden;outline:0;transition:border-color .2s}
 .chat-form textarea:focus{border-bottom-color:var(--lime)}
 .chat-form textarea::placeholder{color:#8e8489}
 .chat-form textarea:disabled{opacity:.55}
