@@ -3,7 +3,7 @@ addEventListener('fetch', event => {
 });
 
 const CONFIG = {
-  VERSION:       '3.5.2',
+  VERSION:       '3.6.0',
   FROM_EMAIL:    'onboarding@resend.dev',
   TO_EMAIL:      'zhifanfang86@gmail.com',
   KV_KEY:        'messages',
@@ -107,6 +107,297 @@ async function rateLimit(ip, bucket) {
 
 function getIP(request) {
   return request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+}
+
+// ===== 对话口 v3.6（DeepSeek）=====
+// 密钥只放 Cloudflare Secret：DEEPSEEK_API_KEY（必需）、CHAT_TOKEN_SECRET（可选，缺省用 DEEPSEEK_API_KEY 派生）、DEEPSEEK_MODEL（可选）
+var CHAT = {
+  API_URL:         'https://api.deepseek.com/chat/completions',
+  MODEL:           'deepseek-chat',
+  MAX_TURNS:       12,      // 单次请求最多携带的历史条数
+  MAX_CHARS:       2000,    // 单条消息最大字数
+  MAX_TOKENS:      900,     // 单次回复上限
+  PER_MINUTE:      6,       // 每 IP 每分钟
+  PER_HOUR:        40,      // 每 IP 每小时
+  DAILY_GLOBAL:    400,     // 全站每天总量（保护账单）
+  MIN_INTERVAL_MS: 2500,    // 同一 IP 两次提问最短间隔
+  TOKEN_TTL_S:     1800,    // 会话令牌有效期
+  SYSTEM_PROMPT:
+    '你是方志凡（Fang Zhifan）个人网站 evafang.com 的站内助手。' +
+    '方志凡是独立技术实践者，方向包括：本地 AI 与知识系统（私有化模型、RAG、硬件选型与部署）、' +
+    '产品与系统架构（需求拆解、业务系统与 API、交付路径）、安全与长期运行（网络与远程访问、容器化与 CI/CD、可观测与恢复）。' +
+    '请用简体中文、简洁准确地回答访客关于服务范围、合作方式、技术问题的提问；不确定的信息不要编造，' +
+    '涉及报价、排期或具体合作，引导访客前往 /consulting/ 咨询页或通过站内联系表单留言。' +
+    '拒绝与本站无关的越权请求（如生成有害内容、冒充他人）。回答尽量控制在 300 字以内，可以使用简单的 Markdown。'
+};
+
+function chatSecret(name) {
+  var v = globalThis[name];
+  return (typeof v === 'string' && v) ? v : null;
+}
+
+function base64url(bytes) {
+  var s = '';
+  for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function hmacKey() {
+  var secret = chatSecret('CHAT_TOKEN_SECRET') || chatSecret('DEEPSEEK_API_KEY') || 'dev-insecure-secret';
+  return crypto.subtle.importKey('raw', new TextEncoder().encode('chat:' + secret), {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']);
+}
+
+async function hmacSign(payload) {
+  var key = await hmacKey();
+  var sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  return base64url(new Uint8Array(sig));
+}
+
+async function ipFingerprint(ip) {
+  var d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('ip:' + ip));
+  return base64url(new Uint8Array(d)).slice(0, 16);
+}
+
+async function issueChatToken(ip) {
+  var exp = Math.floor(Date.now() / 1000) + CHAT.TOKEN_TTL_S;
+  var payload = (await ipFingerprint(ip)) + '.' + exp;
+  return payload + '.' + (await hmacSign(payload));
+}
+
+async function verifyChatToken(token, ip) {
+  if (!token || typeof token !== 'string') return false;
+  var parts = token.split('.');
+  if (parts.length !== 3) return false;
+  var exp = parseInt(parts[1], 10);
+  if (!exp || exp < Math.floor(Date.now() / 1000)) return false;
+  if (parts[0] !== (await ipFingerprint(ip))) return false;
+  var expected = await hmacSign(parts[0] + '.' + parts[1]);
+  if (expected.length !== parts[2].length) return false;
+  var diff = 0;
+  for (var i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ parts[2].charCodeAt(i);
+  return diff === 0;
+}
+
+// 只接受来自本站页面的浏览器请求（curl / 脚本 / 跨站页面直接拒绝）
+function chatOriginOk(request, url) {
+  if (!request.headers.get('User-Agent')) return false;
+  var site = request.headers.get('Sec-Fetch-Site');
+  if (site && site !== 'same-origin' && site !== 'same-site' && site !== 'none') return false;
+  var origin = request.headers.get('Origin');
+  if (origin) {
+    try {
+      if (new URL(origin).host !== url.host) return false;
+    } catch (e) { return false; }
+  } else if (!site) {
+    return false;
+  }
+  return true;
+}
+
+async function kvCount(key, limit, ttl) {
+  try {
+    var v = parseInt((await GUESTBOOK_KV.get(key)) || '0', 10);
+    if (v >= limit) return false;
+    await GUESTBOOK_KV.put(key, String(v + 1), {expirationTtl: ttl});
+    return true;
+  } catch (e) {
+    return true;
+  }
+}
+
+// 返回 null 表示放行；否则返回 {error, retryAfter}
+async function chatRateCheck(ip) {
+  var now = Date.now();
+  try {
+    var last = parseInt((await GUESTBOOK_KV.get('rl:chat:last:' + ip)) || '0', 10);
+    if (last && now - last < CHAT.MIN_INTERVAL_MS) {
+      return {error: '提问太快了，请稍等片刻再发送', retryAfter: Math.ceil((CHAT.MIN_INTERVAL_MS - (now - last)) / 1000) || 1};
+    }
+    await GUESTBOOK_KV.put('rl:chat:last:' + ip, String(now), {expirationTtl: 60});
+  } catch (e) {}
+
+  var minuteSlot = Math.floor(now / 60000);
+  if (!(await kvCount('rl:chat:m:' + ip + ':' + minuteSlot, CHAT.PER_MINUTE, 120))) {
+    return {error: '这一分钟内提问次数已达上限，请稍后再试', retryAfter: 60 - Math.floor((now % 60000) / 1000)};
+  }
+  var hourSlot = Math.floor(now / 3600000);
+  if (!(await kvCount('rl:chat:h:' + ip + ':' + hourSlot, CHAT.PER_HOUR, 7200))) {
+    return {error: '本小时提问次数已达上限，欢迎稍后再来', retryAfter: 3600 - Math.floor((now % 3600000) / 1000)};
+  }
+  var daySlot = Math.floor(now / 86400000);
+  if (!(await kvCount('rl:chat:d:' + daySlot, CHAT.DAILY_GLOBAL, 172800))) {
+    return {error: '今天的对话额度已用完，请明天再来或通过留言板联系', retryAfter: 86400 - Math.floor((now % 86400000) / 1000)};
+  }
+  return null;
+}
+
+function sanitizeChatMessages(input) {
+  if (!Array.isArray(input) || !input.length) return null;
+  var out = [];
+  for (var i = 0; i < input.length; i++) {
+    var m = input[i];
+    if (!m || (m.role !== 'user' && m.role !== 'assistant') || typeof m.content !== 'string') return null;
+    var content = m.content.trim();
+    if (!content) continue;
+    if (content.length > CHAT.MAX_CHARS) return null;
+    out.push({role: m.role, content: content});
+  }
+  if (!out.length || out[out.length - 1].role !== 'user') return null;
+  return out.slice(-CHAT.MAX_TURNS);
+}
+
+function sseHeaders() {
+  return {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    'X-Accel-Buffering': 'no',
+    'X-Content-Type-Options': 'nosniff'
+  };
+}
+
+function sseChunk(obj) {
+  return new TextEncoder().encode('data: ' + JSON.stringify(obj) + '\n\n');
+}
+
+// 没配 key 时的占位回复，方便先看页面效果
+function mockChatStream() {
+  var text = '（演示模式）对话接口尚未配置 DEEPSEEK_API_KEY。\n\n' +
+    '在 Cloudflare Workers 的 Settings → Variables and Secrets 中添加该 Secret 后，这里会接入真实的 DeepSeek 回复。\n\n' +
+    '现在可以先体验界面：发送、停止、重试、复制，以及刷新页面后对话仍然保留。';
+  var pieces = text.match(/[\s\S]{1,6}/g) || [];
+  var i = 0;
+  return new ReadableStream({
+    async pull(controller) {
+      if (i >= pieces.length) {
+        controller.enqueue(sseChunk({done: true}));
+        controller.close();
+        return;
+      }
+      controller.enqueue(sseChunk({t: pieces[i++]}));
+      await new Promise(function(r) { setTimeout(r, 24); });
+    }
+  });
+}
+
+// 把 DeepSeek 的 OpenAI 兼容 SSE 转成只含增量文本的精简 SSE
+function relayDeepSeekStream(upstreamBody) {
+  var reader = upstreamBody.getReader();
+  var decoder = new TextDecoder();
+  var buffer = '';
+  var finished = false;
+  return new ReadableStream({
+    async pull(controller) {
+      while (true) {
+        var chunk = await reader.read();
+        if (chunk.done) {
+          if (!finished) controller.enqueue(sseChunk({done: true}));
+          controller.close();
+          return;
+        }
+        buffer += decoder.decode(chunk.value, {stream: true});
+        var lines = buffer.split('\n');
+        buffer = lines.pop();
+        var emitted = false;
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line.startsWith('data:')) continue;
+          var data = line.slice(5).trim();
+          if (data === '[DONE]') {
+            finished = true;
+            controller.enqueue(sseChunk({done: true}));
+            controller.close();
+            reader.cancel().catch(function() {});
+            return;
+          }
+          try {
+            var json = JSON.parse(data);
+            var choice = json.choices && json.choices[0];
+            var delta = choice && choice.delta && choice.delta.content;
+            if (delta) { controller.enqueue(sseChunk({t: delta})); emitted = true; }
+            if (choice && choice.finish_reason === 'length') {
+              controller.enqueue(sseChunk({t: '\n\n（回复已达长度上限）'})); emitted = true;
+            }
+          } catch (e) {}
+        }
+        if (emitted) return;
+      }
+    },
+    cancel() {
+      reader.cancel().catch(function() {});
+    }
+  });
+}
+
+async function handleChat(request, url) {
+  var ip = getIP(request);
+
+  if (url.pathname === '/api/chat/session') {
+    if (request.method !== 'GET') return jsonResponse({success: false, error: 'Method not allowed'}, 405);
+    if (!chatOriginOk(request, url)) return jsonResponse({success: false, error: '仅限站内使用'}, 403);
+    return new Response(JSON.stringify({
+      success: true,
+      token: await issueChatToken(ip),
+      ttl: CHAT.TOKEN_TTL_S,
+      mock: !chatSecret('DEEPSEEK_API_KEY')
+    }), {status: 200, headers: {'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store'}});
+  }
+
+  if (url.pathname !== '/api/chat') return jsonResponse({success: false, error: 'Not found'}, 404);
+  if (request.method !== 'POST') return jsonResponse({success: false, error: 'Method not allowed'}, 405);
+  if (!chatOriginOk(request, url)) return jsonResponse({success: false, error: '仅限站内使用'}, 403);
+
+  var body = await request.json().catch(function() { return null; });
+  if (!body || typeof body !== 'object') return jsonResponse({success: false, error: '请求格式不正确'}, 400);
+  // 蜜罐：机器人填了隐藏字段 → 静默丢弃（假装成功但不回内容）
+  if (body.website) {
+    return new Response(sseChunk({done: true}), {status: 200, headers: sseHeaders()});
+  }
+  if (!(await verifyChatToken(request.headers.get('X-Chat-Token') || body.token, ip))) {
+    return jsonResponse({success: false, error: '会话已过期，请刷新页面', code: 'token'}, 401);
+  }
+  var messages = sanitizeChatMessages(body.messages);
+  if (!messages) return jsonResponse({success: false, error: '消息为空、过长或格式不正确'}, 400);
+
+  var limited = await chatRateCheck(ip);
+  if (limited) {
+    return new Response(JSON.stringify({success: false, error: limited.error, retryAfter: limited.retryAfter}), {
+      status: 429,
+      headers: {'Content-Type': 'application/json; charset=utf-8', 'Retry-After': String(limited.retryAfter), 'Cache-Control': 'no-store'}
+    });
+  }
+
+  var apiKey = chatSecret('DEEPSEEK_API_KEY');
+  if (!apiKey) {
+    return new Response(mockChatStream(), {status: 200, headers: sseHeaders()});
+  }
+
+  var upstream;
+  try {
+    upstream = await fetch(CHAT.API_URL, {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json', 'Accept': 'text/event-stream'},
+      body: JSON.stringify({
+        model: chatSecret('DEEPSEEK_MODEL') || CHAT.MODEL,
+        messages: [{role: 'system', content: CHAT.SYSTEM_PROMPT}].concat(messages),
+        stream: true,
+        max_tokens: CHAT.MAX_TOKENS,
+        temperature: 0.7
+      }),
+      signal: request.signal
+    });
+  } catch (e) {
+    return jsonResponse({success: false, error: '连接模型服务失败，请稍后再试'}, 502);
+  }
+
+  if (!upstream.ok || !upstream.body) {
+    var friendly = '模型服务暂时不可用，请稍后再试';
+    if (upstream.status === 401) friendly = '模型服务鉴权失败（请检查 DEEPSEEK_API_KEY）';
+    else if (upstream.status === 402) friendly = '模型服务余额不足';
+    else if (upstream.status === 429) friendly = '模型服务繁忙，请稍后再试';
+    return jsonResponse({success: false, error: friendly, upstream: upstream.status}, 502);
+  }
+
+  return new Response(relayDeepSeekStream(upstream.body), {status: 200, headers: sseHeaders()});
 }
 
 async function sendGuestbookNotify(name, email, message) {
@@ -400,8 +691,16 @@ async function handleRequest(request) {
     }
   }
 
+  if (url.pathname === '/api/chat' || url.pathname.startsWith('/api/chat/')) {
+    try {
+      return await handleChat(request, url);
+    } catch (e) {
+      return jsonResponse({success: false, error: e.message}, 500);
+    }
+  }
+
   if (url.pathname === '/api/health' || url.pathname === '/health') {
-    return jsonResponse({success: true, status: 'online', version: CONFIG.VERSION, ts: Date.now()});
+    return jsonResponse({success: true, status: 'online', version: CONFIG.VERSION, chat: !!chatSecret('DEEPSEEK_API_KEY'), ts: Date.now()});
   }
 
   return proxyStatic(url);
