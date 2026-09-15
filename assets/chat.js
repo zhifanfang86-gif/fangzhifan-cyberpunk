@@ -216,7 +216,7 @@
   async function fetchSession() {
     setStatus('', '正在连接…');
     try {
-      const resp = await fetch(SESSION_API, { method: 'GET', cache: 'no-store', credentials: 'omit' });
+      const resp = await fetch(SESSION_API, { method: 'GET', cache: 'no-store' });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data.token) throw new Error(data.error || 'HTTP ' + resp.status);
       token = data.token;
