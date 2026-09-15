@@ -34,6 +34,7 @@
   let controller = null;
   let cooldownTimer = null;
   let cooldownUntil = 0;
+  let sessionTimer = null;
 
   // ---------- 状态与提示 ----------
   function setStatus(kind, text) {
@@ -42,7 +43,7 @@
   }
 
   function showError(text, html) {
-    if (!text) { errorEl.hidden = true; errorEl.textContent = ''; return; }
+    if (!text && !html) { errorEl.hidden = true; errorEl.textContent = ''; return; }
     errorEl.hidden = false;
     if (html) errorEl.innerHTML = html; else errorEl.textContent = text;
   }
@@ -213,10 +214,11 @@
   }
 
   // ---------- 会话令牌 ----------
-  async function fetchSession() {
+  async function fetchSession(signal) {
+    clearTimeout(sessionTimer);
     setStatus('', '正在连接…');
     try {
-      const resp = await fetch(SESSION_API, { method: 'GET', cache: 'no-store' });
+      const resp = await fetch(SESSION_API, { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data.token) throw new Error(data.error || 'HTTP ' + resp.status);
       token = data.token;
@@ -225,7 +227,7 @@
       showError('');
       // 令牌到期前自动续期
       const ttl = Math.max(60, Number(data.ttl) || 1800);
-      setTimeout(fetchSession, (ttl - 60) * 1000);
+      sessionTimer = setTimeout(() => fetchSession(), Math.max(30, ttl - 60) * 1000);
       return true;
     } catch (e) {
       token = null;
@@ -241,7 +243,7 @@
   // ---------- 发送与流式接收 ----------
   async function send(text) {
     const content = text.trim();
-    if (!content || busy || !token) return;
+    if (!content || busy || !token || Date.now() < cooldownUntil) return;
     if (content.length > MAX_CHARS) { showError('单条消息最多 ' + MAX_CHARS + ' 字'); return; }
 
     showError('');
@@ -256,9 +258,10 @@
   }
 
   async function retryFrom(index) {
-    if (busy) return;
+    if (busy || Date.now() < cooldownUntil) return;
     const failed = messages[index];
     if (!failed || failed.role !== 'assistant' || !failed.failed) return;
+    messages = messages.slice(0, index + 1);
     failed.failed = false;
     failed.content = '';
     failed.streaming = true;
@@ -287,20 +290,23 @@
     let ok = false;
     let userError = '';
     try {
-      const resp = await fetch(API, {
+      let resp;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        resp = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Chat-Token': token },
         body: JSON.stringify({ messages: history, website: hpEl.value || '' }),
         signal: controller.signal,
-        credentials: 'omit'
+        credentials: 'same-origin'
       });
+        if (resp.status !== 401 || attempt === 1) break;
+        await resp.body?.cancel();
+        if (!(await fetchSession(controller.signal))) break;
+        controller.signal.throwIfAborted();
+      }
 
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
-        if (resp.status === 401 && !isRetry) {
-          // 令牌过期：拿一个新令牌后自动重发一次
-          if (await fetchSession()) { busy = false; return stream(reply, true); }
-        }
         if (resp.status === 429) {
           const wait = Number(data.retryAfter || resp.headers.get('Retry-After') || 30);
           startCooldown(wait);
@@ -309,11 +315,12 @@
         throw new Error(userError);
       }
 
+      if (!resp.body || !resp.headers.get('Content-Type')?.includes('text/event-stream')) throw new Error('Invalid stream');
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
       let done = false;
-      while (!done) {
+      try { while (!done) {
         const chunk = await reader.read();
         if (chunk.done) break;
         buffer += decoder.decode(chunk.value, { stream: true });
@@ -328,7 +335,8 @@
           if (payload.error) { userError = payload.error; throw new Error(payload.error); }
           if (payload.done) { done = true; break; }
         }
-      }
+      } } finally { await reader.cancel().catch(() => {}); }
+      if (!done) throw new Error('Incomplete stream');
       ok = reply.content.trim().length > 0;
       if (!ok) userError = '模型没有返回内容，请重试';
     } catch (e) {

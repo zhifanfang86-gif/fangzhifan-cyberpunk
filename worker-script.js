@@ -3,7 +3,7 @@ addEventListener('fetch', event => {
 });
 
 const CONFIG = {
-  VERSION:       '3.6.0',
+  VERSION:       '3.6.3',
   FROM_EMAIL:    'onboarding@resend.dev',
   TO_EMAIL:      'zhifanfang86@gmail.com',
   KV_KEY:        'messages',
@@ -64,6 +64,7 @@ function jsonResponse(data, status) {
     status: status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'
@@ -119,7 +120,9 @@ var CHAT = {
   MAX_TOKENS:      900,     // 单次回复上限
   PER_MINUTE:      6,       // 每 IP 每分钟
   PER_HOUR:        40,      // 每 IP 每小时
-  DAILY_GLOBAL:    400,     // 全站每天总量（保护账单）
+  DAILY_GLOBAL:    400,     // KV 最终一致性下的软限制，不是严格账单上限
+  MAX_BODY_BYTES:  100000,
+  UPSTREAM_TIMEOUT_MS: 60000,
   MIN_INTERVAL_MS: 2500,    // 同一 IP 两次提问最短间隔
   TOKEN_TTL_S:     1800,    // 会话令牌有效期
   SYSTEM_PROMPT:
@@ -178,7 +181,7 @@ async function verifyChatToken(token, ip) {
   return diff === 0;
 }
 
-// 只接受来自本站页面的浏览器请求（curl / 脚本 / 跨站页面直接拒绝）
+// 跨站浏览器请求检查；这些请求头可以伪造，不是机器人认证。
 function chatOriginOk(request, url) {
   if (!request.headers.get('User-Agent')) return false;
   var site = request.headers.get('Sec-Fetch-Site');
@@ -197,11 +200,12 @@ function chatOriginOk(request, url) {
 async function kvCount(key, limit, ttl) {
   try {
     var v = parseInt((await GUESTBOOK_KV.get(key)) || '0', 10);
+    if (!Number.isFinite(v) || v < 0) throw new Error('Invalid limiter state');
     if (v >= limit) return false;
     await GUESTBOOK_KV.put(key, String(v + 1), {expirationTtl: ttl});
     return true;
   } catch (e) {
-    return true;
+    throw new Error('对话限流服务暂时不可用，请稍后再试');
   }
 }
 
@@ -214,7 +218,7 @@ async function chatRateCheck(ip) {
       return {error: '提问太快了，请稍等片刻再发送', retryAfter: Math.ceil((CHAT.MIN_INTERVAL_MS - (now - last)) / 1000) || 1};
     }
     await GUESTBOOK_KV.put('rl:chat:last:' + ip, String(now), {expirationTtl: 60});
-  } catch (e) {}
+  } catch (e) { throw new Error('对话限流服务暂时不可用，请稍后再试'); }
 
   var minuteSlot = Math.floor(now / 60000);
   if (!(await kvCount('rl:chat:m:' + ip + ':' + minuteSlot, CHAT.PER_MINUTE, 120))) {
@@ -232,7 +236,7 @@ async function chatRateCheck(ip) {
 }
 
 function sanitizeChatMessages(input) {
-  if (!Array.isArray(input) || !input.length) return null;
+  if (!Array.isArray(input) || !input.length || input.length > CHAT.MAX_TURNS) return null;
   var out = [];
   for (var i = 0; i < input.length; i++) {
     var m = input[i];
@@ -280,21 +284,25 @@ function mockChatStream() {
 }
 
 // 把 DeepSeek 的 OpenAI 兼容 SSE 转成只含增量文本的精简 SSE
-function relayDeepSeekStream(upstreamBody) {
+function relayDeepSeekStream(upstreamBody, cleanup) {
+  cleanup = cleanup || function() {};
   var reader = upstreamBody.getReader();
   var decoder = new TextDecoder();
   var buffer = '';
   var finished = false;
   return new ReadableStream({
     async pull(controller) {
+      try {
       while (true) {
         var chunk = await reader.read();
         if (chunk.done) {
-          if (!finished) controller.enqueue(sseChunk({done: true}));
+          if (!finished) controller.enqueue(sseChunk({error: '模型连接提前结束，请重试'}));
+          cleanup();
           controller.close();
           return;
         }
         buffer += decoder.decode(chunk.value, {stream: true});
+        if (buffer.length > CHAT.MAX_BODY_BYTES) throw new Error('Oversized stream event');
         var lines = buffer.split('\n');
         buffer = lines.pop();
         var emitted = false;
@@ -304,6 +312,7 @@ function relayDeepSeekStream(upstreamBody) {
           var data = line.slice(5).trim();
           if (data === '[DONE]') {
             finished = true;
+            cleanup();
             controller.enqueue(sseChunk({done: true}));
             controller.close();
             reader.cancel().catch(function() {});
@@ -311,6 +320,13 @@ function relayDeepSeekStream(upstreamBody) {
           }
           try {
             var json = JSON.parse(data);
+            if (json.error) {
+              controller.enqueue(sseChunk({error: '模型服务返回错误，请稍后再试'}));
+              cleanup();
+              controller.close();
+              reader.cancel().catch(function() {});
+              return;
+            }
             var choice = json.choices && json.choices[0];
             var delta = choice && choice.delta && choice.delta.content;
             if (delta) { controller.enqueue(sseChunk({t: delta})); emitted = true; }
@@ -321,11 +337,37 @@ function relayDeepSeekStream(upstreamBody) {
         }
         if (emitted) return;
       }
+      } catch (e) {
+        cleanup();
+        reader.cancel().catch(function() {});
+        controller.enqueue(sseChunk({error: '模型连接中断或超时，请重试'}));
+        controller.close();
+      }
     },
     cancel() {
+      cleanup();
       reader.cancel().catch(function() {});
     }
   });
+}
+
+async function readChatBody(request) {
+  if (Number(request.headers.get('Content-Length')) > CHAT.MAX_BODY_BYTES) throw new Error('body-limit');
+  if (!request.body) return null;
+  var reader = request.body.getReader();
+  var decoder = new TextDecoder();
+  var size = 0, text = '';
+  try {
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > CHAT.MAX_BODY_BYTES) throw new Error('body-limit');
+      text += decoder.decode(chunk.value, {stream: true});
+    }
+    text += decoder.decode();
+    return JSON.parse(text);
+  } finally { await reader.cancel().catch(function() {}); }
 }
 
 async function handleChat(request, url) {
@@ -346,7 +388,9 @@ async function handleChat(request, url) {
   if (request.method !== 'POST') return jsonResponse({success: false, error: 'Method not allowed'}, 405);
   if (!chatOriginOk(request, url)) return jsonResponse({success: false, error: '仅限站内使用'}, 403);
 
-  var body = await request.json().catch(function() { return null; });
+  var body;
+  try { body = await readChatBody(request); }
+  catch (e) { return jsonResponse({success: false, error: '请求过大或格式不正确'}, e.message === 'body-limit' ? 413 : 400); }
   if (!body || typeof body !== 'object') return jsonResponse({success: false, error: '请求格式不正确'}, 400);
   // 蜜罐：机器人填了隐藏字段 → 静默丢弃（假装成功但不回内容）
   if (body.website) {
@@ -358,7 +402,9 @@ async function handleChat(request, url) {
   var messages = sanitizeChatMessages(body.messages);
   if (!messages) return jsonResponse({success: false, error: '消息为空、过长或格式不正确'}, 400);
 
-  var limited = await chatRateCheck(ip);
+  var limited;
+  try { limited = await chatRateCheck(ip); }
+  catch (e) { return jsonResponse({success: false, error: '对话限流服务暂时不可用，请稍后再试'}, 503); }
   if (limited) {
     return new Response(JSON.stringify({success: false, error: limited.error, retryAfter: limited.retryAfter}), {
       status: 429,
@@ -372,6 +418,15 @@ async function handleChat(request, url) {
   }
 
   var upstream;
+  var abort = new AbortController();
+  var cancelUpstream = function() { abort.abort(); };
+  var timeout = setTimeout(cancelUpstream, CHAT.UPSTREAM_TIMEOUT_MS);
+  var cleanup = function() {
+    clearTimeout(timeout);
+    request.signal.removeEventListener('abort', cancelUpstream);
+  };
+  request.signal.addEventListener('abort', cancelUpstream, {once: true});
+  if (request.signal.aborted) cancelUpstream();
   try {
     upstream = await fetch(CHAT.API_URL, {
       method: 'POST',
@@ -383,13 +438,16 @@ async function handleChat(request, url) {
         max_tokens: CHAT.MAX_TOKENS,
         temperature: 0.7
       }),
-      signal: request.signal
+      signal: abort.signal
     });
   } catch (e) {
+    cleanup();
     return jsonResponse({success: false, error: '连接模型服务失败，请稍后再试'}, 502);
   }
 
   if (!upstream.ok || !upstream.body) {
+    cleanup();
+    if (upstream.body) await upstream.body.cancel().catch(function() {});
     var friendly = '模型服务暂时不可用，请稍后再试';
     if (upstream.status === 401) friendly = '模型服务鉴权失败（请检查 DEEPSEEK_API_KEY）';
     else if (upstream.status === 402) friendly = '模型服务余额不足';
@@ -397,7 +455,7 @@ async function handleChat(request, url) {
     return jsonResponse({success: false, error: friendly, upstream: upstream.status}, 502);
   }
 
-  return new Response(relayDeepSeekStream(upstream.body), {status: 200, headers: sseHeaders()});
+  return new Response(relayDeepSeekStream(upstream.body, cleanup), {status: 200, headers: sseHeaders()});
 }
 
 async function sendGuestbookNotify(name, email, message) {
@@ -486,6 +544,13 @@ async function addMessage(name, email, message) {
   var trimmed = list.slice(0, CONFIG.MAX_MESSAGES);
   await GUESTBOOK_KV.put(CONFIG.KV_KEY, JSON.stringify(trimmed));
   return trimmed;
+}
+
+// Public guestbook payloads must never include private contact details.
+function publicMessages(entries) {
+  return entries.map(function(entry) {
+    return {name: entry.name, message: entry.message, time: entry.time, timestamp: entry.timestamp};
+  });
 }
 
 async function proxyImage(path) {
@@ -624,7 +689,7 @@ async function handleRequest(request) {
     if (request.method === 'GET') {
       try {
         var data = await getMessages();
-        return jsonResponse({success: true, data: data});
+        return jsonResponse({success: true, data: publicMessages(data)});
       } catch (e) {
         return jsonResponse({success: false, error: e.message}, 500);
       }
@@ -634,7 +699,7 @@ async function handleRequest(request) {
         var body = await request.json().catch(function() { return {}; });
         // 蜜罐：机器人填了隐藏字段 → 静默丢弃（假装成功）
         if (body.website) {
-          return jsonResponse({success: true, data: await getMessages()});
+          return jsonResponse({success: true, data: publicMessages(await getMessages())});
         }
         var name = sanitize(body.name, 50);
         var email = sanitize(body.email, 100);
@@ -651,11 +716,11 @@ async function handleRequest(request) {
           return jsonResponse({success: false, error: '投递太频繁，请 1 分钟后再试'}, 429);
         }
         if (newest && newest.name === name && newest.message === message) {
-          return jsonResponse({success: true, data: existing});
+          return jsonResponse({success: true, data: publicMessages(existing)});
         }
         var data = await addMessage(name, email, message);
         await sendGuestbookNotify(name, email, message);
-        return jsonResponse({success: true, data: data});
+        return jsonResponse({success: true, data: publicMessages(data)});
       } catch (e) {
         return jsonResponse({success: false, error: e.message}, 500);
       }
