@@ -1,25 +1,44 @@
 (() => {
   'use strict';
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const $ = (selector, root = document) => root?.querySelector(selector);
+  const $$ = (selector, root = document) => [...(root?.querySelectorAll(selector) || [])];
+  async function fetchBounded(url, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      const result = await response.json();
+      return { response, result };
+    } finally { clearTimeout(timer); }
+  }
+  function cacheMessages(list) {
+    try { localStorage.setItem('fangzhifan_guestbook_cache_v2', JSON.stringify(list)); } catch {}
+  }
   const menuButton = $('[data-menu-button]');
   const menu = $('[data-menu]');
 
   function closeMenu() {
     if (!menuButton || !menu) return;
     menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', '打开菜单');
     menu.classList.remove('open');
   }
   menuButton?.addEventListener('click', () => {
     const expanded = menuButton.getAttribute('aria-expanded') === 'true';
     menuButton.setAttribute('aria-expanded', String(!expanded));
+    menuButton.setAttribute('aria-label', expanded ? '打开菜单' : '关闭菜单');
     menu.classList.toggle('open', !expanded);
   });
   $$('a[href^="#"]', menu).forEach(link => link.addEventListener('click', closeMenu));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && menuButton?.getAttribute('aria-expanded') === 'true') {
+      closeMenu(); menuButton.focus();
+    }
+  });
 
   const backTop = $('[data-back-top]');
   addEventListener('scroll', () => backTop?.classList.toggle('visible', scrollY > 700), { passive: true });
-  backTop?.addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
+  backTop?.addEventListener('click', () => scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }));
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const revealItems = $$('.reveal');
@@ -62,6 +81,7 @@
     event.preventDefault();
     const status = $('[data-form-status]', form);
     const submit = $('button[type="submit"]', form);
+    if (submit.disabled) return;
     const label = $('[data-submit-label]', form);
     const data = new FormData(form);
     const name = String(data.get('name') || '').trim();
@@ -76,12 +96,11 @@
     label.textContent = '正在发送…';
     setStatus('');
     try {
-      const response = await fetch('/messages', {
+      const { response, result } = await fetchBounded('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, website, message: `【${topic}】\n${message}` })
       });
-      const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.success) throw new Error(result.error || '提交失败，请稍后重试。');
       form.reset();
       setStatus('已发送。我会尽快阅读并回复。', 'success');
@@ -98,6 +117,7 @@
   const guestbookFeed = $('[data-guestbook-feed]');
   const guestbookStatus = $('[data-guestbook-status]');
   const guestbookCacheKey = 'fangzhifan_guestbook_cache_v2';
+  let guestbookLoading = false, guestbookRevision = 0, refreshAfter = 0;
 
   const setGuestbookStatus = (message, type = '') => {
     if (!guestbookStatus) return;
@@ -114,7 +134,7 @@
       guestbookFeed.append(empty);
       return;
     }
-    list.slice(0, 50).forEach(message => {
+    list.filter(message => message && typeof message.message === 'string').slice(0, 50).forEach(message => {
       const entry = document.createElement('article');
       entry.className = 'guestbook-entry';
       const head = document.createElement('div');
@@ -132,14 +152,18 @@
     });
   };
   const loadGuestbook = async ({ silent = false } = {}) => {
+    if (guestbookLoading || Date.now() < refreshAfter || $('button[type="submit"]', guestbookForm)?.disabled) return false;
+    guestbookLoading = true;
+    const revision = guestbookRevision;
     try {
-      const response = await fetch('/messages', { method: 'GET', cache: 'no-store' });
-      const result = await response.json().catch(() => ({}));
+      const { response, result } = await fetchBounded('/messages', { method: 'GET', cache: 'no-store' });
       if (!response.ok || !result.success || !Array.isArray(result.data)) throw new Error('暂时无法读取留言');
-      localStorage.setItem(guestbookCacheKey, JSON.stringify(result.data));
+      if (revision !== guestbookRevision) return false;
+      cacheMessages(result.data);
       renderGuestbook(result.data);
       return true;
     } catch (error) {
+      if (revision !== guestbookRevision) return false;
       try {
         const cached = JSON.parse(localStorage.getItem(guestbookCacheKey) || '[]');
         if (Array.isArray(cached) && cached.length) renderGuestbook(cached);
@@ -147,7 +171,7 @@
       } catch { if (!silent) renderGuestbook([]); }
       if (!silent) setGuestbookStatus('网络暂不可用，稍后会自动重试。', 'error');
       return false;
-    }
+    } finally { guestbookLoading = false; }
   };
   if (guestbookForm) {
     loadGuestbook();
@@ -156,6 +180,7 @@
     guestbookForm.addEventListener('submit', async event => {
       event.preventDefault();
       const submit = $('button[type="submit"]', guestbookForm);
+      if (submit.disabled) return;
       const data = new FormData(guestbookForm);
       const name = String(data.get('guestbook-name') || '').trim();
       const email = String(data.get('guestbook-email') || '').trim();
@@ -163,24 +188,31 @@
       const website = String(data.get('guestbook-website') || '');
       if (!name || !message) { setGuestbookStatus('请填写称呼和留言。', 'error'); return; }
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setGuestbookStatus('请检查邮箱格式。', 'error'); return; }
+      guestbookRevision++;
       submit.disabled = true; setGuestbookStatus('正在投递…');
       try {
-        const response = await fetch('/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message, website }) });
-        const result = await response.json().catch(() => ({}));
+        const { response, result } = await fetchBounded('/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message, website }) });
         if (!response.ok || !result.success) throw new Error(result.error || '投递失败，请稍后重试。');
         guestbookForm.reset();
-        if (Array.isArray(result.data)) { localStorage.setItem(guestbookCacheKey, JSON.stringify(result.data)); renderGuestbook(result.data); }
+        refreshAfter = Date.now() + 70000;
+        if (Array.isArray(result.data)) { cacheMessages(result.data); renderGuestbook(result.data); }
         else await loadGuestbook({ silent: true });
         setGuestbookStatus('已投递云端。', 'success');
       } catch (error) { setGuestbookStatus(error.message || '投递失败，请稍后重试。', 'error'); }
       finally { submit.disabled = false; }
     });
-    addEventListener('pagehide', () => clearInterval(pollTimer), { once: true });
+    addEventListener('pagehide', () => clearInterval(pollTimer));
+    addEventListener('pageshow', event => {
+      if (!event.persisted) return;
+      clearInterval(pollTimer);
+      loadGuestbook({ silent: true });
+      pollTimer = setInterval(() => { if (!document.hidden) loadGuestbook({ silent: true }); }, 15000);
+    });
   }
 
   // Original moving texture is loaded only on larger screens and only near the field record.
   const fieldVideo = $('[data-field-video]');
-  if (fieldVideo && !reduceMotion && matchMedia('(min-width: 601px)').matches) {
+  if (fieldVideo && !reduceMotion && !navigator.connection?.saveData && matchMedia('(min-width: 601px)').matches) {
     const startFieldVideo = () => {
       const source = $('source[data-src]', fieldVideo);
       if (!source || source.src) return;

@@ -1,9 +1,9 @@
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
+  event.respondWith(handleRequest(event.request, event));
 });
 
 const CONFIG = {
-  VERSION:       '3.6.4',
+  VERSION:       '3.6.5',
   FROM_EMAIL:    'onboarding@resend.dev',
   TO_EMAIL:      'zhifanfang86@gmail.com',
   KV_KEY:        'messages',
@@ -102,12 +102,12 @@ async function rateLimit(ip, bucket) {
     await GUESTBOOK_KV.put(k, '1', {expirationTtl: 60});
     return true;
   } catch (e) {
-    return true;
+    throw new Error('Rate limiter unavailable');
   }
 }
 
 function getIP(request) {
-  return request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+  return request.headers.get('CF-Connecting-IP') || 'unknown';
 }
 
 // ===== 对话口 v3.6（DeepSeek）=====
@@ -189,7 +189,7 @@ function chatOriginOk(request, url) {
   var origin = request.headers.get('Origin');
   if (origin) {
     try {
-      if (new URL(origin).host !== url.host) return false;
+      if (new URL(origin).origin !== url.origin) return false;
     } catch (e) { return false; }
   } else if (!site) {
     return false;
@@ -473,6 +473,7 @@ async function sendGuestbookNotify(name, email, message) {
     '</div>';
   try {
     await fetch('https://api.resend.com/emails', {
+      signal: AbortSignal.timeout(10000),
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -503,6 +504,7 @@ async function sendEmail(data) {
 
   try {
     var r = await fetch('https://api.resend.com/emails', {
+      signal: AbortSignal.timeout(10000),
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -521,14 +523,26 @@ async function sendEmail(data) {
 }
 
 async function getMessages() {
-  try {
-    var raw = await GUESTBOOK_KV.get(CONFIG.KV_KEY);
-    if (!raw) return [];
-    var parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
-    return [];
-  }
+  var raw = await GUESTBOOK_KV.get(CONFIG.KV_KEY);
+  var legacy = raw ? JSON.parse(raw) : [];
+  if (!Array.isArray(legacy)) throw new Error('Invalid guestbook data');
+  var keys = [], cursor;
+  do {
+    var page = await GUESTBOOK_KV.list({prefix: 'guestbook:v2:', limit: CONFIG.MAX_MESSAGES, ...(cursor ? {cursor: cursor} : {})});
+    keys.push(...page.keys);
+    cursor = page.list_complete ? undefined : page.cursor;
+    if (!page.list_complete && !cursor) throw new Error('Invalid guestbook cursor');
+  } while (cursor && keys.length < CONFIG.MAX_MESSAGES);
+  var selected = keys.slice(0, CONFIG.MAX_MESSAGES);
+  var values = selected.length ? await GUESTBOOK_KV.get(selected.map(function(k) {return k.name;})) : new Map();
+  var recent = selected.map(function(key) {
+    var value = values.get(key.name);
+    if (!value) throw new Error('Guestbook entry unavailable');
+    return JSON.parse(value);
+  });
+  var entries = recent.concat(legacy);
+  if (entries.some(function(e) {return !e || typeof e.message !== 'string';})) throw new Error('Invalid guestbook entry');
+  return entries.sort(function(a,b) {return (b.timestamp || 0) - (a.timestamp || 0);}).slice(0, CONFIG.MAX_MESSAGES);
 }
 
 async function addMessage(name, email, message) {
@@ -540,10 +554,10 @@ async function addMessage(name, email, message) {
     time: new Date().toLocaleString('zh-CN', {hour12: false}),
     timestamp: Date.now()
   };
-  list.unshift(entry);
-  var trimmed = list.slice(0, CONFIG.MAX_MESSAGES);
-  await GUESTBOOK_KV.put(CONFIG.KV_KEY, JSON.stringify(trimmed));
-  return trimmed;
+  // Immutable per-entry keys avoid concurrent read-modify-write loss; legacy data stays untouched.
+  var key = 'guestbook:v2:' + String(9999999999999 - entry.timestamp).padStart(13, '0') + ':' + crypto.randomUUID();
+  await GUESTBOOK_KV.put(key, JSON.stringify(entry));
+  return [entry].concat(list).slice(0, CONFIG.MAX_MESSAGES);
 }
 
 // Public guestbook payloads must never include private contact details.
@@ -671,7 +685,37 @@ async function proxyStatic(url) {
   }
 }
 
-async function handleRequest(request) {
+async function readFormBody(request, url, maxMessage) {
+  if (request.headers.get('Origin') !== url.origin) throw Object.assign(new Error('请从本站提交表单'), {status: 403});
+  if (!(request.headers.get('Content-Type') || '').toLowerCase().startsWith('application/json')) throw Object.assign(new Error('需要 JSON 请求'), {status: 415});
+  var reader = request.body?.getReader(), chunks = [], size = 0;
+  if (!reader) throw Object.assign(new Error('请求内容为空'), {status: 400});
+  try {
+    while (true) {
+      var part = await reader.read();
+      if (part.done) break;
+      size += part.value.byteLength;
+      if (size > 16000) { await reader.cancel(); throw Object.assign(new Error('提交内容过长'), {status: 413}); }
+      chunks.push(part.value);
+    }
+  } finally { reader.releaseLock(); }
+  var bytes = new Uint8Array(size), offset = 0;
+  for (var chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  var body;
+  try { body = JSON.parse(new TextDecoder().decode(bytes)); } catch { throw Object.assign(new Error('请求格式错误'), {status: 400}); }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw Object.assign(new Error('请求格式错误'), {status: 400});
+  for (var [field, limit] of [['name',50],['email',100],['message',maxMessage],['website',200]]) {
+    if (body[field] !== undefined && (typeof body[field] !== 'string' || body[field].length > limit)) throw Object.assign(new Error('字段格式错误或内容过长'), {status: 400});
+  }
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) throw Object.assign(new Error('请检查邮箱格式'), {status: 400});
+  return body;
+}
+
+function formError(error) {
+  return jsonResponse({success:false, error:error.status ? error.message : '服务暂时不可用，请稍后重试'}, error.status || 503);
+}
+
+async function handleRequest(request, context) {
   var url = new URL(request.url);
 
   if (request.method === 'OPTIONS') {
@@ -691,12 +735,12 @@ async function handleRequest(request) {
         var data = await getMessages();
         return jsonResponse({success: true, data: publicMessages(data)});
       } catch (e) {
-        return jsonResponse({success: false, error: e.message}, 500);
+        return formError(e);
       }
     }
     if (request.method === 'POST') {
       try {
-        var body = await request.json().catch(function() { return {}; });
+        var body = await readFormBody(request, url, 500);
         // 蜜罐：机器人填了隐藏字段 → 静默丢弃（假装成功）
         if (body.website) {
           return jsonResponse({success: true, data: publicMessages(await getMessages())});
@@ -712,17 +756,16 @@ async function handleRequest(request) {
         }
         var existing = await getMessages();
         var newest = existing.length ? existing[0] : null;
-        if (newest && newest.timestamp && (Date.now() - newest.timestamp < 60000)) {
-          return jsonResponse({success: false, error: '投递太频繁，请 1 分钟后再试'}, 429);
-        }
         if (newest && newest.name === name && newest.message === message) {
           return jsonResponse({success: true, data: publicMessages(existing)});
         }
+        if (!(await rateLimit(getIP(request), 'guestbook'))) return jsonResponse({success:false, error:'投递太频繁，请 1 分钟后再试'}, 429);
         var data = await addMessage(name, email, message);
-        await sendGuestbookNotify(name, email, message);
+        if (context) context.waitUntil(sendGuestbookNotify(name, email, message));
+        else await sendGuestbookNotify(name, email, message);
         return jsonResponse({success: true, data: publicMessages(data)});
       } catch (e) {
-        return jsonResponse({success: false, error: e.message}, 500);
+        return formError(e);
       }
     }
     return jsonResponse({success: false, error: 'Method not allowed'}, 405);
@@ -730,7 +773,7 @@ async function handleRequest(request) {
 
   if (url.pathname === '/api/contact' && request.method === 'POST') {
     try {
-      var body = await request.json().catch(function() { return {}; });
+      var body = await readFormBody(request, url, 2000);
       if (body.website) {
         return jsonResponse({success: true, message: '邮件已发送', id: 'filtered'});
       }
@@ -748,11 +791,11 @@ async function handleRequest(request) {
       }
       var result = await sendEmail({name: name, email: email, message: message});
       if (!result.ok) {
-        return jsonResponse({success: false, error: result.err}, 502);
+        return jsonResponse({success: false, error: '邮件暂未确认送达，请稍后重试或通过邮箱联系'}, 502);
       }
       return jsonResponse({success: true, message: '邮件已发送', id: result.id});
     } catch (e) {
-      return jsonResponse({success: false, error: e.message}, 500);
+      return formError(e);
     }
   }
 
@@ -768,5 +811,7 @@ async function handleRequest(request) {
     return jsonResponse({success: true, status: 'online', version: CONFIG.VERSION, chat: !!chatSecret('DEEPSEEK_API_KEY'), ts: Date.now()});
   }
 
+  if (url.pathname === '/api/contact') return jsonResponse({success:false, error:'Method not allowed'}, 405);
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/messages')) return jsonResponse({success:false, error:'Not found'}, 404);
   return proxyStatic(url);
 }
