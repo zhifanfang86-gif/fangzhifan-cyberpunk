@@ -23,7 +23,7 @@ test('offline reconnect is visible and succeeds',async()=>{
     await pause();assert.equal(el('[data-error]').hidden,false);
     assert.ok(el('[data-reconnect]'));
     el('[data-reconnect]').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true}));
-    await pause();assert.match(el('[data-status-text]').textContent,/READY/);
+    await pause();assert.match(el('[data-status-text]').textContent,/AI 助手 · 在线/);
     assert.equal(el('[data-error]').hidden,true);
   } finally {dom.window.close();}
 });

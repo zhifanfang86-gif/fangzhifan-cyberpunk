@@ -223,7 +223,7 @@
       if (!resp.ok || !data.token) throw new Error(data.error || 'HTTP ' + resp.status);
       token = data.token;
       mock = !!data.mock;
-      setStatus(mock ? 'mock' : 'online', mock ? 'DEMO MODE · 未配置模型密钥' : 'DEEPSEEK · READY');
+      setStatus(mock ? 'mock' : 'online', mock ? '演示模式 · 尚未接入模型' : 'AI 助手 · 在线');
       showError('');
       // 令牌到期前自动续期
       const ttl = Math.max(60, Number(data.ttl) || 1800);
